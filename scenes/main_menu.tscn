@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3 uid="uid://menu0001"]
+
+[ext_resource type="Script" path="res://scripts/ui/menu_controller.gd" id="1_script"]
+
+[node name="MainMenu" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="MenuCamera" type="Camera3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.906308, -0.422618, 0, 0.422618, 0.906308, 0, 2.5, 7)
+fov = 50.0
+
+[node name="Room" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="CRTScreen" type="MeshInstance3D" parent="Room"]
+unique_name_in_owner = true
+
+[node name="EmidaSprite" type="Sprite3D" parent="Room"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.5, -2)
+billboard = 1
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="UILayer"]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 80.0
+offset_right = 300.0
+offset_bottom = 180.0
+text = "X. WHEEL"
+horizontal_alignment = 1
+
+[node name="MenuButtons" type="VBoxContainer" parent="UILayer"]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 300.0
+offset_right = 150.0
+offset_bottom = 500.0
+theme_override_constants/separation = 20
+
+[node name="NewGameBtn" type="Button" parent="UILayer/MenuButtons"]
+layout_mode = 2
+text = "开始游戏"
+
+[node name="SettingsBtn" type="Button" parent="UILayer/MenuButtons"]
+layout_mode = 2
+text = "设置"
+
+[node name="LanguageBtn" type="Button" parent="UILayer"]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 12
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 1700.0
+offset_top = -60.0
+offset_right = 1880.0
+offset_bottom = -20.0
+text = "日本語"
+
+[node name="VersionLabel" type="Label" parent="UILayer"]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 12
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -30.0
+offset_right = 150.0
+offset_bottom = -10.0
+text = "v0.1.0"

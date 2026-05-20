@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bodaf5px2ha37"
+
+[deps]
+
+files=["res://data/dialogue/chapter1.character.translation", "res://data/dialogue/chapter1.emotion.translation", "res://data/dialogue/chapter1.text.translation", "res://data/dialogue/chapter1.text.translation", "res://data/dialogue/chapter1.en.translation"]
+
+source_file="res://data/dialogue/chapter1.csv"
+dest_files=["res://data/dialogue/chapter1.character.translation", "res://data/dialogue/chapter1.emotion.translation", "res://data/dialogue/chapter1.text.translation", "res://data/dialogue/chapter1.text.translation", "res://data/dialogue/chapter1.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

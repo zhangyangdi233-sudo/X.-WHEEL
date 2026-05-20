@@ -1,0 +1,41 @@
+# Godot generated files
+.godot/
+.import/
+
+# Local editor and assistant state
+.claude/
+.vscode/
+.idea/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tools and downloaded archives
+tools/*.exe
+tools/*.zip
+tools/*.7z
+tools/*.rar
+
+# Build/export output
+build/
+dist/
+exports/
+*.pck
+*.apk
+*.aab
+*.exe
+*.dmg

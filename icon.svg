@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Deep blue background -->
+  <rect width="128" height="128" rx="12" fill="#0C1725"/>
+
+  <!-- Signal tower silhouette -->
+  <rect x="52" y="20" width="8" height="88" fill="#1a2d3a"/>
+  <rect x="32" y="50" width="48" height="4" fill="#1a2d3a"/>
+  <rect x="36" y="70" width="40" height="3" fill="#1a2d3a"/>
+  <rect x="40" y="90" width="32" height="2" fill="#1a2d3a"/>
+
+  <!-- Green signal light at tower top -->
+  <circle cx="56" cy="22" r="6" fill="#3FA943"/>
+  <circle cx="56" cy="22" r="10" fill="#3FA943" opacity="0.3"/>
+
+  <!-- X. WHEEL text -->
+  <text x="64" y="115" font-family="monospace" font-size="14" fill="#35A146" text-anchor="middle" font-weight="bold">X. WHEEL</text>
+</svg>

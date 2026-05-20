@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cxwirfirlpxj7"
+
+[deps]
+
+files=["res://data/dialogue/prologue.character.translation", "res://data/dialogue/prologue.emotion.translation", "res://data/dialogue/prologue.text.translation", "res://data/dialogue/prologue.text.translation", "res://data/dialogue/prologue.pollution.translation"]
+
+source_file="res://data/dialogue/prologue.csv"
+dest_files=["res://data/dialogue/prologue.character.translation", "res://data/dialogue/prologue.emotion.translation", "res://data/dialogue/prologue.text.translation", "res://data/dialogue/prologue.text.translation", "res://data/dialogue/prologue.pollution.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
