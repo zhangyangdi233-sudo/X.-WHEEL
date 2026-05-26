@@ -26,6 +26,8 @@ DialogueManager="*res://scripts/autoload/dialogue_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 PollutionSystem="*res://scripts/autoload/pollution_system.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
+GlitchEffect="*res://scripts/effects/glitch_effect.gd"
+SceneTransitioner="*res://scripts/autoload/scene_transitioner.gd"
 
 [display]
 

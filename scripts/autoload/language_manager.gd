@@ -4,14 +4,16 @@ extends Node
 enum Language { CHINESE, JAPANESE }
 var current_language: Language = Language.CHINESE
 
-# Loaded translation dictionaries
 var _ui_strings: Dictionary = {}
-var _dialogue_strings: Dictionary = {}  # keyed by dialogue id
+var _dialogue_strings: Dictionary = {}
 
-# ─── Font resources (loaded on init) ───
+# ─── Font resources ───
 var font_zh: FontFile
 var font_ja: FontFile
+var font_latin: FontFile
 var font_pixel_default: FontFile
+var font_title_sans: FontFile  # Bold sans-serif for "ΠΑΝΗΓΥΡΙΣ" title card
+var font_fallback: FontFile   # Fallback for rare CJK chars not in Fusion Pixel
 
 
 func _ready() -> void:
@@ -23,11 +25,14 @@ func _ready() -> void:
 func _load_fonts() -> void:
 	font_zh = load("res://assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf")
 	font_ja = load("res://assets/fonts/fusion-pixel-12px-proportional-ja.otf")
-	font_pixel_default = font_zh  # default to Chinese
+	font_latin = load("res://assets/fonts/fusion-pixel-12px-proportional-latin.otf")
+	font_pixel_default = font_zh
+	# Dedicated title path for "ΠΑΝΗΓΥΡΙΣ"; replace with a true bold sans asset later.
+	font_title_sans = font_latin if font_latin else font_zh
+	font_fallback = font_zh
 
 
 func _load_ui_strings() -> void:
-	# UI strings are embedded here for simplicity; larger games use CSV.
 	_ui_strings = {
 		"zh": {
 			"start_game": "开始游戏",
@@ -47,6 +52,11 @@ func _load_ui_strings() -> void:
 			"transmit": "发射信号",
 			"dont_transmit": "不发射",
 			"new_game": "新游戏",
+			"insert_cartridge": "插入卡带",
+			"eject_cartridge": "弹出卡带",
+			"cartridge_select": "选择卡带",
+			"fridge_empty": "看来是没有什么可以吃的东西了",
+			"climb_rung": "点击攀爬",
 		},
 		"ja": {
 			"start_game": "はじめる",
@@ -65,7 +75,12 @@ func _load_ui_strings() -> void:
 			"stay_silent": "沈黙を守る",
 			"transmit": "信号を送信",
 			"dont_transmit": "送信しない",
-			"new_game": "はじめから",
+			"new_game": "はじめる",
+			"insert_cartridge": "カートリッジを入れる",
+			"eject_cartridge": "カートリッジを取り出す",
+			"cartridge_select": "カートリッジ選択",
+			"fridge_empty": "食べ物は何もなさそうだ",
+			"climb_rung": "クリックして登る",
 		}
 	}
 
@@ -89,19 +104,30 @@ func toggle_language() -> void:
 
 
 func t(key: String) -> String:
-	## Returns a UI string in the current language.
 	var lang_key = "zh" if current_language == Language.CHINESE else "ja"
 	if _ui_strings.has(lang_key) and _ui_strings[lang_key].has(key):
 		return _ui_strings[lang_key][key]
-	return key  # fallback: show the key itself
+	return key
 
 
 func get_current_font() -> FontFile:
 	return font_pixel_default
 
 
+func get_title_font() -> FontFile:
+	return font_title_sans
+
+
+func get_fallback_font() -> FontFile:
+	return font_fallback if font_fallback else font_pixel_default
+
+
+func supports_glyph(font: FontFile, char_code: int) -> bool:
+	if font == null: return false
+	return font.has_char(char_code)
+
+
 func get_color_for_character(character_id: String) -> Color:
-	## Returns the dialogue text color for a given character.
 	match character_id:
 		"emida", "エミダー", "埃弥亣":
 			return Color("3FA943")  # signal green

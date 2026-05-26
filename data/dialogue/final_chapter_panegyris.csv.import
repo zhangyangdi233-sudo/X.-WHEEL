@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://7a0sur4p3obn"
+
+[deps]
+
+files=["res://data/dialogue/final_chapter_panegyris.character.translation", "res://data/dialogue/final_chapter_panegyris.emotion.translation", "res://data/dialogue/final_chapter_panegyris.text.translation", "res://data/dialogue/final_chapter_panegyris.text.translation", "res://data/dialogue/final_chapter_panegyris.safe.translation", "res://data/dialogue/final_chapter_panegyris.en.translation", "res://data/dialogue/final_chapter_panegyris.interaction.translation"]
+
+source_file="res://data/dialogue/final_chapter_panegyris.csv"
+dest_files=["res://data/dialogue/final_chapter_panegyris.character.translation", "res://data/dialogue/final_chapter_panegyris.emotion.translation", "res://data/dialogue/final_chapter_panegyris.text.translation", "res://data/dialogue/final_chapter_panegyris.text.translation", "res://data/dialogue/final_chapter_panegyris.safe.translation", "res://data/dialogue/final_chapter_panegyris.en.translation", "res://data/dialogue/final_chapter_panegyris.interaction.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

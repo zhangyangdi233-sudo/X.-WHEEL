@@ -3,29 +3,50 @@ extends Node
 
 # ─── Core progression flags ───
 var pollution_level: float = 0.0       # 0–100, language corruption
-var belief_level: float = 0.0          # 0–100, faith in urban legends / the signal
-var self_awareness: float = 0.0        # 0–100, questioning her nature as Y2K
-var silence_affinity: float = 0.0      # 0–100, closeness to the Wise One path
+## DEPRECATED: var belief_level (kept for old save compatibility)
+var belief_level: float = 0.0
+## DEPRECATED: var self_awareness (kept for old save compatibility)
+var self_awareness: float = 0.0
+## DEPRECATED: var silence_affinity (kept for old save compatibility)
+var silence_affinity: float = 0.0
 
 # ─── Mood / visual state ───
 var mood_level: float = 0.0            # 0.0–1.0, drives color grading shader
 var is_glitching: bool = false
 var shake_intensity: float = 0.0
 
-# ─── Chapter tracking ───
-var current_chapter: String = ""
-var capitolo_seen: Dictionary = {}     # capitolo_name -> bool
+# ─── Cartridge system (NEW) ───
+var play_order: Array[String] = []             # e.g. ["cartridge2", "cartridge1"]
+var current_cartridge: String = ""              # "" or "cartridge1"|"cartridge2"|"cartridge3"|"final"
+var all_cartridges_completed: bool = false
+var cigarette_butt_seen: Dictionary = {}        # cartridge_name -> bool
+var macguffin_name_visible: bool = false        # true if Cartridge 2 has been played
+var cartridge_progress: Dictionary = {}         # cartridge_name -> line_index
+var climb_responses: int = 0                    # 0-3 tracking response count in final chapter
+var memory_degradation_tier: int = 0            # 0-4 for structured degradation in final chapter
 
-# ─── Choice tracking (for ending logic) ───
+# ─── Chapter tracking (DEPRECATED) ───
+## DEPRECATED: var current_chapter (kept for old save compatibility)
+var current_chapter: String = ""
+## DEPRECATED: var capitolo_seen (kept for old save compatibility)
+var capitolo_seen: Dictionary = {}
+
+# ─── Choice tracking (for ending logic) — DEPRECATED ───
+## DEPRECATED: var choices_made (kept for old save compatibility)
 var choices_made: Array[String] = []
+## DEPRECATED: var chapters_completed (kept for old save compatibility)
 var chapters_completed: Array[String] = []
 
-# ─── Ether spice — currently held item ───
+# ─── Ether spice — DEPRECATED ───
+## DEPRECATED: var ether_item (kept for old save compatibility)
 var ether_item: String = ""
+## DEPRECATED: var ether_sense (kept for old save compatibility)
 var ether_sense: String = ""
 
-# ─── Ending ───
+# ─── Ending (DEPRECATED) ───
+## DEPRECATED: enum Ending (kept for old save compatibility)
 enum Ending { NONE, TRANSMIT, SUNSET }
+## DEPRECATED: var ending_reached (kept for old save compatibility)
 var ending_reached: Ending = Ending.NONE
 
 # ─── Settings ───
@@ -43,6 +64,16 @@ func reset_to_new_game() -> void:
 	mood_level = 0.0
 	is_glitching = false
 	shake_intensity = 0.0
+	# Cartridge system
+	play_order.clear()
+	current_cartridge = ""
+	all_cartridges_completed = false
+	cigarette_butt_seen.clear()
+	macguffin_name_visible = false
+	cartridge_progress.clear()
+	climb_responses = 0
+	memory_degradation_tier = 0
+	# Deprecated
 	current_chapter = ""
 	capitolo_seen.clear()
 	choices_made.clear()
@@ -52,10 +83,38 @@ func reset_to_new_game() -> void:
 	ending_reached = Ending.NONE
 
 
+# ─── Cartridge management ───
+
+func mark_cartridge_completed(cartridge_name: String) -> void:
+	if cartridge_name not in play_order:
+		play_order.append(cartridge_name)
+	if cartridge_name == "cartridge2":
+		macguffin_name_visible = true
+	all_cartridges_completed = (
+		"cartridge1" in play_order and
+		"cartridge2" in play_order and
+		"cartridge3" in play_order
+	)
+
+
+func is_cartridge_completed(cartridge_name: String) -> bool:
+	return cartridge_name in play_order
+
+
+func has_played_cartridge2() -> bool:
+	return is_cartridge_completed("cartridge2")
+
+
+func get_completed_count() -> int:
+	return play_order.size()
+
+
+# ─── Deprecated helpers (kept for old save compatibility) ───
+
 func add_belief(amount: float) -> void:
 	belief_level = clampf(belief_level + amount, 0.0, 100.0)
 	if amount > 0:
-		add_pollution(amount * 0.5)  # believing accelerates pollution
+		add_pollution(amount * 0.5)
 
 
 func add_self_awareness(amount: float) -> void:
@@ -72,7 +131,6 @@ func add_pollution(amount: float) -> void:
 
 
 func _update_mood() -> void:
-	# mood_level tracks pollution + chapter progression
 	mood_level = clampf(pollution_level / 100.0, 0.0, 1.0)
 
 
@@ -85,7 +143,6 @@ func has_made_choice(choice_id: String) -> bool:
 
 
 func get_pollution_tier() -> int:
-	## Returns 0–4 representing the pollution tier.
 	if pollution_level <= 20: return 0
 	if pollution_level <= 40: return 1
 	if pollution_level <= 60: return 2
@@ -93,9 +150,11 @@ func get_pollution_tier() -> int:
 	return 4
 
 
+## DEPRECATED
 func can_choose_transmit() -> bool:
-	return belief_level >= self_awareness - 10.0  # close or belief > awareness
+	return belief_level >= self_awareness - 10.0
 
 
+## DEPRECATED
 func can_choose_silence() -> bool:
-	return self_awareness >= belief_level - 10.0  # close or awareness > belief
+	return self_awareness >= belief_level - 10.0

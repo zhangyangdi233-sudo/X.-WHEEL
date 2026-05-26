@@ -1,0 +1,93 @@
+[gd_scene load_steps=9 format=3 uid="uid://crtbase001"]
+
+[ext_resource type="Shader" path="res://shaders/crt_border.gdshader" id="1_crt_shader"]
+[ext_resource type="Shader" path="res://shaders/scanline.gdshader" id="2_scanline"]
+[ext_resource type="Shader" path="res://shaders/vignette.gdshader" id="3_vignette"]
+[ext_resource type="Shader" path="res://shaders/mood_color.gdshader" id="4_mood"]
+
+[sub_resource type="ShaderMaterial" id="crt_mat"]
+shader = ExtResource("1_crt_shader")
+shader_parameter/power_on = 1.0
+
+[sub_resource type="ShaderMaterial" id="scanline_mat"]
+shader = ExtResource("2_scanline")
+
+[sub_resource type="ShaderMaterial" id="vignette_mat"]
+shader = ExtResource("3_vignette")
+
+[sub_resource type="ShaderMaterial" id="mood_mat"]
+shader = ExtResource("4_mood")
+
+[node name="CRTGameBase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="GameCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -0.5)
+fov = 65.0
+current = true
+
+[node name="GameLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866, -0.5, 0, 0.5, 0.866, 3, 5, 2)
+light_energy = 1.0
+light_color = Color(1, 0.95, 0.9, 1)
+
+[node name="UICanvas" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="CRTBezel" type="ColorRect" parent="UICanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 1
+color = Color(0.05, 0.05, 0.05, 1)
+material = SubResource("crt_mat")
+mouse_filter = 2
+
+[node name="ScanlineOverlay" type="ColorRect" parent="UICanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 1
+material = SubResource("scanline_mat")
+mouse_filter = 2
+
+[node name="VignetteOverlay" type="ColorRect" parent="UICanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 1
+material = SubResource("vignette_mat")
+mouse_filter = 2
+
+[node name="MoodOverlay" type="ColorRect" parent="UICanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 1
+material = SubResource("mood_mat")
+mouse_filter = 2
+
+[node name="TransitionOverlay" type="ColorRect" parent="UICanvas"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 1
+grow_vertical = 1
+color = Color(0, 0, 0, 1)
+modulate = Color(1, 1, 1, 0)
+mouse_filter = 2
+
+[node name="PowerIndicator" type="Label" parent="UICanvas"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "● REC"
+theme_override_colors/font_color = Color(0.247059, 0.662745, 0.262745, 1)
+theme_override_font_sizes/font_size = 12

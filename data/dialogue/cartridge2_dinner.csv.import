@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d3b0aqptsv1fb"
+
+[deps]
+
+files=["res://data/dialogue/cartridge2_dinner.character.translation", "res://data/dialogue/cartridge2_dinner.emotion.translation", "res://data/dialogue/cartridge2_dinner.text.translation", "res://data/dialogue/cartridge2_dinner.text.translation", "res://data/dialogue/cartridge2_dinner.safe.translation", "res://data/dialogue/cartridge2_dinner.en.translation", "res://data/dialogue/cartridge2_dinner.interaction.translation"]
+
+source_file="res://data/dialogue/cartridge2_dinner.csv"
+dest_files=["res://data/dialogue/cartridge2_dinner.character.translation", "res://data/dialogue/cartridge2_dinner.emotion.translation", "res://data/dialogue/cartridge2_dinner.text.translation", "res://data/dialogue/cartridge2_dinner.text.translation", "res://data/dialogue/cartridge2_dinner.safe.translation", "res://data/dialogue/cartridge2_dinner.en.translation", "res://data/dialogue/cartridge2_dinner.interaction.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

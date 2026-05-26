@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://0p0eqmspsfe"
+
+[deps]
+
+files=["res://data/dialogue/cartridge1_fries_rain.character.translation", "res://data/dialogue/cartridge1_fries_rain.emotion.translation", "res://data/dialogue/cartridge1_fries_rain.text.translation", "res://data/dialogue/cartridge1_fries_rain.text.translation", "res://data/dialogue/cartridge1_fries_rain.safe.translation", "res://data/dialogue/cartridge1_fries_rain.en.translation", "res://data/dialogue/cartridge1_fries_rain.interaction.translation"]
+
+source_file="res://data/dialogue/cartridge1_fries_rain.csv"
+dest_files=["res://data/dialogue/cartridge1_fries_rain.character.translation", "res://data/dialogue/cartridge1_fries_rain.emotion.translation", "res://data/dialogue/cartridge1_fries_rain.text.translation", "res://data/dialogue/cartridge1_fries_rain.text.translation", "res://data/dialogue/cartridge1_fries_rain.safe.translation", "res://data/dialogue/cartridge1_fries_rain.en.translation", "res://data/dialogue/cartridge1_fries_rain.interaction.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

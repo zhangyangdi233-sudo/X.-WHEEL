@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://wwt32xifh0x7"
+
+[deps]
+
+files=["res://data/dialogue/cartridge3_hajimi.character.translation", "res://data/dialogue/cartridge3_hajimi.emotion.translation", "res://data/dialogue/cartridge3_hajimi.text.translation", "res://data/dialogue/cartridge3_hajimi.text.translation", "res://data/dialogue/cartridge3_hajimi.safe.translation", "res://data/dialogue/cartridge3_hajimi.en.translation", "res://data/dialogue/cartridge3_hajimi.interaction.translation"]
+
+source_file="res://data/dialogue/cartridge3_hajimi.csv"
+dest_files=["res://data/dialogue/cartridge3_hajimi.character.translation", "res://data/dialogue/cartridge3_hajimi.emotion.translation", "res://data/dialogue/cartridge3_hajimi.text.translation", "res://data/dialogue/cartridge3_hajimi.text.translation", "res://data/dialogue/cartridge3_hajimi.safe.translation", "res://data/dialogue/cartridge3_hajimi.en.translation", "res://data/dialogue/cartridge3_hajimi.interaction.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
