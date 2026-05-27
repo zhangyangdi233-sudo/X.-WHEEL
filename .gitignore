@@ -5,6 +5,7 @@
 # Local editor and assistant state
 .claude/
 .omc/
+.superpowers/
 .vscode/
 .idea/
 
