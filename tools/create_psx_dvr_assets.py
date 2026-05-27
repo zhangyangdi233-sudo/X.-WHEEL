@@ -98,8 +98,12 @@ class Asset:
     notes: list[str] = field(default_factory=list)
 
     @property
+    def export_primitives(self) -> list[Primitive]:
+        return [primitive for primitive in self.primitives if not primitive.name.startswith("col_")]
+
+    @property
     def triangle_count(self) -> int:
-        return sum(primitive.triangle_count for primitive in self.primitives)
+        return sum(primitive.triangle_count for primitive in self.export_primitives)
 
     @property
     def material_count(self) -> int:
@@ -520,7 +524,7 @@ def build_console_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_console_texture(),
         materials=console_materials(),
-        notes=["Source .blend omitted because Blender executable was not available; generator script is source of truth."],
+        notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
     b.add_box("console_main_body", (0.0, 0.0, 0.42), (3.12, 3.22, 0.78), 0)
@@ -561,7 +565,6 @@ def build_console_asset() -> Asset:
         b.add_cylinder_z(f"console_top_screw_{idx}", (x, y, 0.973), 0.055, 0.018, 8, 6)
     for idx, x in enumerate([-1.42, -0.96, -0.50, -0.04, 0.42, 0.88, 1.34]):
         b.add_box(f"console_front_pixel_scuff_{idx}", (x, -1.682, 0.755), (0.12, 0.018, 0.018), 1)
-    b.add_box("col_psx_dvr_console_box", (0.0, 0.0, 0.43), (3.18, 3.28, 0.90), 8)
     return asset
 
 
@@ -572,7 +575,7 @@ def build_disc_asset() -> Asset:
         texture_size=(128, 128),
         texture_pixels=build_disc_texture(),
         materials=disc_materials(),
-        notes=["Source .blend omitted because Blender executable was not available; generator script is source of truth."],
+        notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
     b.add_cylinder_z("disc_outer_silver_ring", (0.0, 0.0, 0.035), 0.48, 0.055, 24, 0, hole_radius=0.075)
@@ -582,7 +585,6 @@ def build_disc_asset() -> Asset:
         x = math.cos(angle) * 0.25
         y = math.sin(angle) * 0.25
         b.add_box(f"disc_pixel_label_tick_{idx}", (x, y, 0.095), (0.11, 0.018, 0.01), 1)
-    b.add_cylinder_z("col_psx_dvr_disc_cylinder", (0.0, 0.0, 0.035), 0.50, 0.07, 12, 4, hole_radius=0.065)
     return asset
 
 
@@ -657,9 +659,8 @@ class GlbWriter:
         return len(self.accessors) - 1
 
     def build(self) -> bytes:
-        meshes = []
-        nodes = []
-        for primitive in self.asset.primitives:
+        mesh_primitives = []
+        for primitive in self.asset.export_primitives:
             mins, maxs = min_max_vec3(primitive.positions)
             position_accessor = self.add_accessor(
                 pack_floats(flatten_vec3(primitive.positions)),
@@ -698,24 +699,23 @@ class GlbWriter:
                 "SCALAR",
                 34963,
             )
-            mesh = {
-                "name": primitive.name,
-                "primitives": [
-                    {
-                        "attributes": {
-                            "POSITION": position_accessor,
-                            "NORMAL": normal_accessor,
-                            "TEXCOORD_0": uv_accessor,
-                            "COLOR_0": color_accessor,
-                        },
-                        "indices": index_accessor,
-                        "material": primitive.material_index,
-                        "mode": 4,
-                    }
-                ],
-            }
-            meshes.append(mesh)
-            nodes.append({"name": primitive.name, "mesh": len(meshes) - 1})
+            mesh_primitives.append(
+                {
+                    "attributes": {
+                        "POSITION": position_accessor,
+                        "NORMAL": normal_accessor,
+                        "TEXCOORD_0": uv_accessor,
+                        "COLOR_0": color_accessor,
+                    },
+                    "indices": index_accessor,
+                    "material": primitive.material_index,
+                    "mode": 4,
+                    "extras": {"source_part": primitive.name},
+                }
+            )
+
+        meshes = [{"name": self.asset.name, "primitives": mesh_primitives}]
+        nodes = [{"name": self.asset.name, "mesh": 0}]
 
         image_view = self.append_blob(self.image_bytes)
         materials = []
@@ -740,7 +740,7 @@ class GlbWriter:
                 "copyright": "Logo-free original asset generated for X. WHEEL",
             },
             "scene": 0,
-            "scenes": [{"name": self.asset.name, "nodes": list(range(len(nodes)))}],
+            "scenes": [{"name": self.asset.name, "nodes": [0]}],
             "nodes": nodes,
             "meshes": meshes,
             "materials": materials,
@@ -876,7 +876,7 @@ def generate_assets() -> list[Asset]:
     assets = [build_console_asset(), build_disc_asset()]
     manifest = {
         "generator": "tools/create_psx_dvr_assets.py",
-        "source_note": "Blender is not available in this environment, so this reproducible script is the source asset file.",
+        "source_note": "GLB geometry is generated reproducibly by script, then imported into assets/3d/psx_dvr_assets.blend as two Blender assets.",
         "assets": {},
     }
     for asset in assets:
@@ -890,7 +890,8 @@ def generate_assets() -> list[Asset]:
             "triangles": asset.triangle_count,
             "materials": asset.material_count,
             "texture_size": list(asset.texture_size),
-            "objects": [primitive.name for primitive in asset.primitives],
+            "objects": [asset.name],
+            "source_parts": [primitive.name for primitive in asset.export_primitives],
             "notes": asset.notes,
         }
         print(f"{asset.name}: {asset.triangle_count} triangles, {asset.material_count} materials")

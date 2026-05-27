@@ -1,18 +1,21 @@
 {
   "generator": "tools/create_psx_dvr_assets.py",
-  "source_note": "Blender is not available in this environment, so this reproducible script is the source asset file.",
+  "source_note": "GLB geometry is generated reproducibly by script, then imported into assets/3d/psx_dvr_assets.blend as two Blender assets.",
   "assets": {
     "psx_dvr_console": {
       "glb": "assets/3d/psx_dvr_console/psx_dvr_console.glb",
       "texture": "assets/3d/psx_dvr_console/psx_dvr_console_texture.png",
       "preview": "assets/3d/psx_dvr_console/psx_dvr_console_preview.png",
-      "triangles": 1344,
+      "triangles": 1332,
       "materials": 9,
       "texture_size": [
         256,
         256
       ],
       "objects": [
+        "psx_dvr_console"
+      ],
+      "source_parts": [
         "console_main_body",
         "console_bottom_shadow",
         "console_top_step",
@@ -95,35 +98,36 @@
         "console_front_pixel_scuff_3",
         "console_front_pixel_scuff_4",
         "console_front_pixel_scuff_5",
-        "console_front_pixel_scuff_6",
-        "col_psx_dvr_console_box"
+        "console_front_pixel_scuff_6"
       ],
       "notes": [
-        "Source .blend omitted because Blender executable was not available; generator script is source of truth."
+        "Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."
       ]
     },
     "psx_dvr_disc": {
       "glb": "assets/3d/psx_dvr_disc/psx_dvr_disc.glb",
       "texture": "assets/3d/psx_dvr_disc/psx_dvr_disc_texture.png",
       "preview": "assets/3d/psx_dvr_disc/psx_dvr_disc_preview.png",
-      "triangles": 624,
+      "triangles": 528,
       "materials": 5,
       "texture_size": [
         128,
         128
       ],
       "objects": [
+        "psx_dvr_disc"
+      ],
+      "source_parts": [
         "disc_outer_silver_ring",
         "disc_printed_label_ring",
         "disc_inner_clear_ring",
         "disc_pixel_label_tick_0",
         "disc_pixel_label_tick_1",
         "disc_pixel_label_tick_2",
-        "disc_pixel_label_tick_3",
-        "col_psx_dvr_disc_cylinder"
+        "disc_pixel_label_tick_3"
       ],
       "notes": [
-        "Source .blend omitted because Blender executable was not available; generator script is source of truth."
+        "Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."
       ]
     }
   }

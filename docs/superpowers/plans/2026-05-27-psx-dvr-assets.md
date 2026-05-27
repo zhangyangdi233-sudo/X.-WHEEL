@@ -4,7 +4,7 @@
 
 **Goal:** Build two logo-free PSX DVR-inspired low-poly GLB assets: a console and a matching optical disc.
 
-**Architecture:** A single reproducible Python generator creates all geometry, materials, textures, GLB files, preview PNGs, and a manifest. Because Blender is not available in this environment, the source-of-truth file is the generator script rather than a `.blend` file.
+**Architecture:** A single reproducible Python generator creates all geometry, materials, textures, GLB files, preview PNGs, and a manifest. Blender then imports the generated GLBs into a `.blend` scene containing exactly two mesh assets.
 
 **Tech Stack:** Python 3 standard library only, glTF 2.0 binary `.glb`, hand-authored PNG textures via `zlib`, simple orthographic software preview renderer.
 

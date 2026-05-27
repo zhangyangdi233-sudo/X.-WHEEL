@@ -49,6 +49,9 @@ def import_glb(filepath: Path, collection_name: str, x_offset: float) -> list[bp
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=str(filepath))
     imported = [obj for obj in bpy.data.objects if obj not in before]
+    mesh_imports = [obj for obj in imported if obj.type == "MESH"]
+    if len(mesh_imports) != 1:
+        raise RuntimeError(f"{collection_name}: expected 1 mesh object from GLB, got {len(mesh_imports)}")
 
     for obj in imported:
         for linked_collection in list(obj.users_collection):
@@ -59,8 +62,9 @@ def import_glb(filepath: Path, collection_name: str, x_offset: float) -> list[bp
         obj.asset_data.description = f"Low-poly PSX DVR asset: {collection_name}"
 
         if obj.type == "MESH":
+            obj.name = collection_name
             obj.data.asset_mark()
-            obj.data.name = f"{collection_name}_{obj.data.name}"
+            obj.data.name = f"{collection_name}_mesh"
             for polygon in obj.data.polygons:
                 polygon.use_smooth = False
 
