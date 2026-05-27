@@ -46,17 +46,20 @@ The disc uses a simplified DVD/game-disc form: low-sided circular mesh, center h
 
 ## Output Paths
 
-- `assets/3d/psx_dvr_console/psx_dvr_console.blend`
 - `assets/3d/psx_dvr_console/psx_dvr_console.glb`
+- `assets/3d/psx_dvr_console/psx_dvr_console_texture.png`
 - `assets/3d/psx_dvr_console/psx_dvr_console_preview.png`
-- `assets/3d/psx_dvr_disc/psx_dvr_disc.blend`
 - `assets/3d/psx_dvr_disc/psx_dvr_disc.glb`
+- `assets/3d/psx_dvr_disc/psx_dvr_disc_texture.png`
 - `assets/3d/psx_dvr_disc/psx_dvr_disc_preview.png`
+- `assets/3d/psx_dvr_assets_manifest.json`
 - `tools/create_psx_dvr_assets.py`
+
+Blender is not available in this environment, so no `.blend` files are produced. The reproducible Python generator is the source asset file.
 
 ## Verification
 
-- Re-import exported GLB files into a clean Blender scene.
+- Validate exported GLB files with the generator's `--verify` mode.
 - Confirm object origins are centered and transforms are applied.
 - Confirm each asset is separate and has stable ASCII object/material names.
 - Record triangle counts, material counts, and texture sizes.
