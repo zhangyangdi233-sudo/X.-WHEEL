@@ -5,7 +5,8 @@
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\psx_dvr_console\\psx_dvr_console.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\psx_dvr_disc\\psx_dvr_disc.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\crt_tv\\crt_tv.glb",
-    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\psx_dvr_crt_set\\psx_dvr_crt_set.glb"
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\bookshelf\\bookshelf.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\desk\\desk.glb"
   ],
   "collections": {
     "psx_dvr_console": [
@@ -17,17 +18,21 @@
     "crt_tv": [
       "crt_tv"
     ],
-    "psx_dvr_crt_set": [
-      "psx_dvr_crt_set"
+    "bookshelf": [
+      "bookshelf"
+    ],
+    "desk": [
+      "desk"
     ]
   },
-  "mesh_object_count": 4,
-  "material_count": 40,
+  "mesh_object_count": 5,
+  "material_count": 33,
   "image_count": 2,
   "asset_marked_objects": [
+    "bookshelf",
     "crt_tv",
+    "desk",
     "psx_dvr_console",
-    "psx_dvr_crt_set",
     "psx_dvr_disc"
   ]
 }

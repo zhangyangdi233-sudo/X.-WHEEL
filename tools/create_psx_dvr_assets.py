@@ -97,6 +97,8 @@ class Asset:
     texture_size: tuple[int, int]
     texture_pixels: list[tuple[int, int, int, int]]
     materials: list[Material]
+    dimensions: tuple[float, float, float] | None = None
+    manifest_extra: dict[str, object] = field(default_factory=dict)
     primitives: list[Primitive] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
@@ -482,11 +484,35 @@ def crt_materials() -> list[Material]:
     return [
         Material("mat_crt_deep_shell", hex_to_float_color(PALETTE["deep"])),
         Material("mat_crt_deep_edge", (0.025, 0.055, 0.095, 1.0)),
-        Material("mat_crt_screen_pale", hex_to_float_color(PALETTE["pale"])),
-        Material("mat_crt_screen_green", hex_to_float_color(PALETTE["green"])),
+        Material("mat_crt_black_glass", (0.006, 0.014, 0.024, 1.0), roughness=0.24, metallic=0.08),
+        Material("mat_crt_glass_scanline", (0.025, 0.13, 0.075, 1.0), roughness=0.35),
         Material("mat_crt_panel_green_dark", (0.13, 0.35, 0.20, 1.0)),
         Material("mat_crt_control_dark", (0.04, 0.09, 0.14, 1.0)),
-        Material("mat_crt_highlight", (0.68, 0.88, 0.70, 1.0)),
+        Material("mat_crt_glass_reflection", (0.55, 0.78, 0.60, 1.0), roughness=0.18, metallic=0.04),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def bookshelf_materials() -> list[Material]:
+    return [
+        Material("mat_bookshelf_deep_frame", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_bookshelf_edge_shadow", (0.025, 0.055, 0.090, 1.0)),
+        Material("mat_bookshelf_pale_board", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_bookshelf_green_books", hex_to_float_color(PALETTE["green"])),
+        Material("mat_bookshelf_dim_green", (0.12, 0.32, 0.19, 1.0)),
+        Material("mat_bookshelf_pale_label", (0.72, 0.90, 0.73, 1.0)),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def desk_materials() -> list[Material]:
+    return [
+        Material("mat_desk_deep_frame", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_desk_pale_top", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_desk_green_panel", hex_to_float_color(PALETTE["green"])),
+        Material("mat_desk_recess", (0.015, 0.035, 0.055, 1.0)),
+        Material("mat_desk_pale_edge", (0.74, 0.88, 0.75, 1.0)),
+        Material("mat_desk_dim_green", (0.12, 0.32, 0.18, 1.0)),
         Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
     ]
 
@@ -554,9 +580,15 @@ def build_crt_texture() -> list[tuple[int, int, int, int]]:
     green = hex_to_rgba(PALETTE["green"])
     dark = rgb_to_rgba((5, 14, 24))
     mid = rgb_to_rgba((16, 50, 42))
-    draw_rect(pixels, w, h, 8, 8, 146, 112, pale)
-    for y in range(16, 108, 8):
-        draw_line(pixels, w, h, 14, y, 140, y + 2, rgb_to_rgba((94, 178, 103)))
+    glass = rgb_to_rgba((2, 7, 12))
+    glass_edge = rgb_to_rgba((7, 20, 31))
+    draw_rect(pixels, w, h, 8, 8, 146, 112, glass)
+    draw_rect(pixels, w, h, 12, 12, 142, 108, glass_edge)
+    draw_rect(pixels, w, h, 18, 18, 136, 102, glass)
+    for y in range(24, 100, 9):
+        draw_line(pixels, w, h, 20, y, 134, y + 1, rgb_to_rgba((13, 53, 36)))
+    draw_line(pixels, w, h, 22, 28, 112, 18, rgb_to_rgba((126, 188, 132)))
+    draw_line(pixels, w, h, 30, 38, 82, 32, rgb_to_rgba((45, 118, 70)))
     draw_rect(pixels, w, h, 158, 8, 244, 112, mid)
     draw_text(pixels, w, h, 171, 24, "CRT", pale, 2)
     draw_text(pixels, w, h, 170, 50, "XW-03", green, 1)
@@ -578,6 +610,7 @@ def build_console_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_console_texture(),
         materials=console_materials(),
+        dimensions=(3.18, 3.28, 1.00),
         notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
@@ -629,6 +662,7 @@ def build_disc_asset() -> Asset:
         texture_size=(128, 128),
         texture_pixels=build_disc_texture(),
         materials=disc_materials(),
+        dimensions=(0.96, 0.96, 0.10),
         notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
@@ -649,7 +683,9 @@ def build_crt_tv_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_crt_texture(),
         materials=crt_materials(),
-        notes=["CRT television prop using the shared #3FA943/#E8F8E4/#0C1725 palette."],
+        dimensions=(2.34, 1.70, 1.56),
+        manifest_extra={"screen_state": "black_glass"},
+        notes=["CRT television prop with black glass screen using the shared #3FA943/#E8F8E4/#0C1725 palette."],
     )
     b = MeshBuilder(asset)
     b.add_box("crt_main_shell", (0.0, 0.0, 0.78), (2.22, 1.54, 1.36), 0)
@@ -657,7 +693,8 @@ def build_crt_tv_asset() -> Asset:
     b.add_box("crt_rear_tube_hump", (0.0, 0.62, 0.82), (1.58, 0.82, 1.04), 1)
     b.add_box("crt_front_bezel", (-0.28, -0.805, 0.85), (1.42, 0.08, 0.96), 1)
     b.add_box("crt_screen_glass", (-0.32, -0.856, 0.86), (1.08, 0.045, 0.70), 2)
-    b.add_box("crt_screen_glow_center", (-0.32, -0.884, 0.86), (0.86, 0.018, 0.52), 6)
+    b.add_box("crt_screen_reflection_long", (-0.48, -0.884, 1.08), (0.44, 0.018, 0.035), 6)
+    b.add_box("crt_screen_reflection_short", (-0.64, -0.886, 0.98), (0.20, 0.016, 0.026), 6)
     for idx, z in enumerate([0.58, 0.70, 0.82, 0.94, 1.06, 1.18]):
         b.add_box(f"crt_scanline_{idx:02d}", (-0.32, -0.898, z), (0.96, 0.012, 0.018), 3)
     b.add_box("crt_control_panel", (0.74, -0.852, 0.86), (0.44, 0.065, 0.84), 4)
@@ -683,64 +720,134 @@ def build_crt_tv_asset() -> Asset:
     return asset
 
 
-def build_set_texture() -> list[tuple[int, int, int, int]]:
+def build_bookshelf_texture() -> list[tuple[int, int, int, int]]:
     w = h = 256
     pixels = make_canvas(w, h, hex_to_rgba(PALETTE["deep"]))
-    draw_text(pixels, w, h, 24, 28, "XW SET", hex_to_rgba(PALETTE["pale"]), 2)
-    draw_text(pixels, w, h, 26, 58, "CRT + DVR + DISC", hex_to_rgba(PALETTE["green"]), 1)
-    for y in range(96, 176, 8):
-        draw_line(pixels, w, h, 34, y, 220, y + 3, rgb_to_rgba((40, 124, 61)))
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    shadow = rgb_to_rgba((6, 24, 30))
+    draw_rect(pixels, w, h, 12, 10, 244, 54, shadow)
+    draw_text(pixels, w, h, 24, 22, "SHELF", pale, 2)
+    for row, y in enumerate([74, 106, 138, 170, 202]):
+        draw_rect(pixels, w, h, 14, y, 242, y + 8, pale if row % 2 else rgb_to_rgba((175, 216, 178)))
+        x = 22
+        for col in range(13):
+            width = 8 + (col % 4) * 3
+            color = green if (col + row) % 3 else rgb_to_rgba((29, 73, 48))
+            draw_rect(pixels, w, h, x, y - 23, x + width, y - 2, color)
+            if col % 2 == 0:
+                draw_rect(pixels, w, h, x + 2, y - 16, x + width - 2, y - 13, pale)
+            x += width + 5
+    for x in range(18, 240, 19):
+        draw_line(pixels, w, h, x, 224, x + 12, 219, rgb_to_rgba((40, 118, 61)))
     return pixels
 
 
-def copy_materials_with_prefix(materials: list[Material], prefix: str) -> list[Material]:
-    return [Material(f"{prefix}_{material.name}", material.color, material.roughness, material.metallic, material.alpha_mode) for material in materials]
+def build_desk_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 256
+    pixels = make_canvas(w, h, hex_to_rgba(PALETTE["deep"]))
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    draw_rect(pixels, w, h, 10, 10, 246, 70, pale)
+    for y in range(18, 66, 10):
+        draw_line(pixels, w, h, 18, y, 236, y + 2, rgb_to_rgba((148, 193, 151)))
+    draw_rect(pixels, w, h, 12, 92, 118, 210, rgb_to_rgba((8, 28, 42)))
+    draw_rect(pixels, w, h, 138, 92, 244, 210, rgb_to_rgba((8, 28, 42)))
+    for x0 in (22, 148):
+        for y0 in (104, 140, 176):
+            draw_rect(pixels, w, h, x0, y0, x0 + 84, y0 + 24, green)
+            draw_rect(pixels, w, h, x0 + 20, y0 + 10, x0 + 64, y0 + 13, pale)
+    draw_text(pixels, w, h, 88, 226, "DESK", green, 2)
+    return pixels
 
 
-def transform_primitive(
-    primitive: Primitive,
-    prefix: str,
-    material_offset: int,
-    translation: tuple[float, float, float],
-    scale: float = 1.0,
-) -> Primitive:
-    tx, ty, tz = translation
-    return Primitive(
-        name=f"{prefix}_{primitive.name}",
-        material_index=primitive.material_index + material_offset,
-        positions=[(x * scale + tx, y * scale + ty, z * scale + tz) for x, y, z in primitive.positions],
-        normals=list(primitive.normals),
-        uvs=list(primitive.uvs),
-        colors=list(primitive.colors),
-        indices=list(primitive.indices),
-    )
-
-
-def build_integrated_set_asset(console: Asset, disc: Asset, crt: Asset) -> Asset:
-    materials: list[Material] = []
-    primitives: list[Primitive] = []
-    placements = [
-        ("console", console, (0.0, -0.55, 0.0), 1.0),
-        ("disc", disc, (-1.35, -2.35, 0.04), 1.0),
-        ("crt", crt, (0.0, 1.55, 0.08), 1.0),
-    ]
-    for prefix, source, translation, scale in placements:
-        material_offset = len(materials)
-        materials.extend(copy_materials_with_prefix(source.materials, prefix))
-        primitives.extend(
-            transform_primitive(primitive, prefix, material_offset, translation, scale)
-            for primitive in source.export_primitives
-        )
-
+def build_bookshelf_asset() -> Asset:
     asset = Asset(
-        name="psx_dvr_crt_set",
-        output_dir=ASSET_ROOT / "psx_dvr_crt_set",
+        name="bookshelf",
+        output_dir=ASSET_ROOT / "bookshelf",
         texture_size=(256, 256),
-        texture_pixels=build_set_texture(),
-        materials=materials,
-        primitives=primitives,
-        notes=["Single GLB scene asset. In Blender, use File > Import > glTF 2.0 and select this GLB."],
+        texture_pixels=build_bookshelf_texture(),
+        materials=bookshelf_materials(),
+        dimensions=(2.90, 0.55, 2.40),
+        notes=["Large room-scale bookshelf prop, sized above the CRT while staying in the shared PSX palette."],
     )
+    b = MeshBuilder(asset)
+    b.add_box("bookshelf_back_panel", (0.0, 0.245, 1.20), (2.90, 0.06, 2.28), 1)
+    b.add_box("bookshelf_left_upright", (-1.39, 0.0, 1.20), (0.12, 0.55, 2.40), 0)
+    b.add_box("bookshelf_right_upright", (1.39, 0.0, 1.20), (0.12, 0.55, 2.40), 0)
+    b.add_box("bookshelf_bottom_plinth", (0.0, 0.0, 0.06), (2.90, 0.55, 0.12), 0)
+    b.add_box("bookshelf_top_cap", (0.0, 0.0, 2.34), (2.90, 0.55, 0.12), 0)
+    b.add_box("bookshelf_center_divider", (0.0, 0.02, 1.18), (0.08, 0.49, 2.06), 1)
+    shelf_z = [0.42, 0.82, 1.22, 1.62, 2.02]
+    for idx, z in enumerate(shelf_z):
+        b.add_box(f"bookshelf_shelf_board_{idx:02d}", (0.0, 0.0, z), (2.70, 0.50, 0.08), 2)
+        b.add_box(f"bookshelf_shelf_shadow_{idx:02d}", (0.0, -0.25, z - 0.055), (2.62, 0.035, 0.045), 1)
+
+    for row, z in enumerate(shelf_z):
+        cursor = -1.18
+        for col in range(10):
+            width = 0.12 + ((row + col) % 4) * 0.025
+            height = 0.24 + ((row * 2 + col) % 5) * 0.035
+            depth = 0.26 + (col % 3) * 0.035
+            material = 3 if (row + col) % 3 else 4
+            x = cursor + width * 0.5
+            zc = z + 0.06 + height * 0.5
+            b.add_box(f"bookshelf_book_{row:02d}_{col:02d}", (x, -0.08, zc), (width, depth, height), material)
+            if (row + col) % 2 == 0:
+                b.add_box(f"bookshelf_book_label_{row:02d}_{col:02d}", (x, -0.235, zc + height * 0.10), (width * 0.58, 0.018, 0.035), 5)
+            else:
+                b.add_box(f"bookshelf_book_spine_line_{row:02d}_{col:02d}", (x, -0.235, zc - height * 0.18), (width * 0.32, 0.016, 0.028), 2)
+            cursor += width + 0.075
+
+    for idx, x in enumerate([-1.16, -0.78, -0.40, 0.36, 0.74, 1.12]):
+        b.add_box(f"bookshelf_plinth_scuff_{idx:02d}", (x, -0.286, 0.145), (0.18, 0.018, 0.028), 5)
+    b.add_box("col_bookshelf_box", (0.0, 0.0, 1.20), (2.90, 0.55, 2.40), 6)
+    return asset
+
+
+def build_desk_asset() -> Asset:
+    asset = Asset(
+        name="desk",
+        output_dir=ASSET_ROOT / "desk",
+        texture_size=(256, 256),
+        texture_pixels=build_desk_texture(),
+        materials=desk_materials(),
+        dimensions=(3.40, 1.92, 1.05),
+        notes=["Large desk prop, wider and deeper than the CRT television for room-scale placement."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("desk_tabletop", (0.0, 0.0, 0.98), (3.40, 1.92, 0.14), 1)
+    b.add_box("desk_tabletop_shadow", (0.0, 0.0, 0.89), (3.28, 1.80, 0.08), 0)
+    b.add_box("desk_front_apron", (0.0, -0.88, 0.80), (3.18, 0.10, 0.18), 0)
+    b.add_box("desk_back_apron", (0.0, 0.88, 0.78), (3.08, 0.10, 0.20), 0)
+    b.add_box("desk_left_side_panel", (-1.52, 0.0, 0.49), (0.16, 1.52, 0.78), 0)
+    b.add_box("desk_right_side_panel", (1.52, 0.0, 0.49), (0.16, 1.52, 0.78), 0)
+    b.add_box("desk_modesty_panel", (0.0, 0.76, 0.48), (2.36, 0.10, 0.58), 3)
+    for idx, (x, y) in enumerate([(-1.43, -0.76), (1.43, -0.76), (-1.43, 0.74), (1.43, 0.74)]):
+        b.add_box(f"desk_square_leg_{idx:02d}", (x, y, 0.43), (0.18, 0.18, 0.82), 0)
+        b.add_box(f"desk_foot_pad_{idx:02d}", (x, y, 0.035), (0.30, 0.28, 0.07), 3)
+
+    for side, x in (("left", -0.92), ("right", 0.92)):
+        b.add_box(f"desk_{side}_drawer_cavity", (x, -0.65, 0.49), (0.82, 0.12, 0.70), 3)
+        for row, z in enumerate([0.31, 0.52, 0.73]):
+            face_mat = 2 if row != 1 else 5
+            b.add_box(f"desk_{side}_drawer_face_{row:02d}", (x, -0.73, z), (0.72, 0.08, 0.17), face_mat)
+            b.add_box(f"desk_{side}_drawer_shadow_{row:02d}", (x, -0.782, z - 0.076), (0.66, 0.025, 0.018), 3)
+            b.add_box(f"desk_{side}_drawer_handle_l_{row:02d}", (x - 0.16, -0.792, z), (0.12, 0.025, 0.026), 4)
+            b.add_box(f"desk_{side}_drawer_handle_r_{row:02d}", (x + 0.16, -0.792, z), (0.12, 0.025, 0.026), 4)
+            b.add_box(f"desk_{side}_drawer_label_{row:02d}", (x, -0.795, z + 0.05), (0.22, 0.018, 0.025), 1)
+
+    for idx, x in enumerate([-1.25, -1.02, -0.79, -0.56, 0.56, 0.79, 1.02, 1.25]):
+        b.add_box(f"desk_front_vent_{idx:02d}", (x, -0.812, 0.145), (0.055, 0.025, 0.18), 5)
+    for idx, y in enumerate([-0.52, -0.30, -0.08, 0.14, 0.36, 0.58]):
+        b.add_box(f"desk_left_side_slit_{idx:02d}", (-1.615, y, 0.66), (0.026, 0.12, 0.045), 5)
+        b.add_box(f"desk_right_side_slit_{idx:02d}", (1.615, y, 0.66), (0.026, 0.12, 0.045), 5)
+    for idx, x in enumerate([-1.30, -0.98, -0.66, -0.34, -0.02, 0.30, 0.62, 0.94, 1.26]):
+        b.add_box(f"desk_top_pixel_scuff_{idx:02d}", (x, -0.58 + (idx % 3) * 0.22, 1.061), (0.16, 0.026, 0.012), 4)
+    b.add_cylinder_z("desk_back_cable_grommet", (0.0, 0.62, 1.065), 0.13, 0.018, 12, 3)
+    b.add_box("desk_under_keyboard_tray", (0.0, -0.36, 0.71), (0.92, 0.48, 0.07), 3)
+    b.add_box("desk_keyboard_tray_pull", (0.0, -0.61, 0.72), (0.44, 0.032, 0.035), 4)
+    b.add_box("col_desk_box", (0.0, 0.0, 0.525), (3.40, 1.92, 1.05), 6)
     return asset
 
 
@@ -1032,16 +1139,17 @@ def generate_assets() -> list[Asset]:
     console = build_console_asset()
     disc = build_disc_asset()
     crt = build_crt_tv_asset()
-    asset_set = build_integrated_set_asset(console, disc, crt)
-    assets = [console, disc, crt, asset_set]
+    bookshelf = build_bookshelf_asset()
+    desk = build_desk_asset()
+    assets = [console, disc, crt, bookshelf, desk]
     manifest = {
         "generator": "tools/create_psx_dvr_assets.py",
-        "source_note": "GLB geometry is generated reproducibly by script. Blender can import the individual GLBs or the integrated set GLB.",
+        "source_note": "GLB geometry is generated reproducibly by script. Blender imports each object as an individual asset.",
         "palette": {
             "primary": PALETTE_PRIMARY,
             "usage": {
-                "#3FA943": "green screen glow, status lights, labels, and accents",
-                "#E8F8E4": "pale screen/plastic highlights and disc center",
+                "#3FA943": "status lights, labels, book spines, drawer fronts, and accents",
+                "#E8F8E4": "pale plastic highlights, shelf boards, desktop, and disc center",
                 "#0C1725": "deep shell, recesses, ports, and shadows",
             },
         },
@@ -1058,13 +1166,12 @@ def generate_assets() -> list[Asset]:
             "triangles": asset.triangle_count,
             "materials": asset.material_count,
             "texture_size": list(asset.texture_size),
+            "dimensions": list(asset.dimensions) if asset.dimensions else None,
             "objects": [asset.name],
             "source_parts": [primitive.name for primitive in asset.export_primitives],
             "notes": asset.notes,
         }
-        if asset.name == "psx_dvr_crt_set":
-            manifest["assets"][asset.name]["contains"] = ["psx_dvr_console", "psx_dvr_disc", "crt_tv"]
-            manifest["assets"][asset.name]["blender_import"] = "Import GLB in Blender"
+        manifest["assets"][asset.name].update(asset.manifest_extra)
         print(f"{asset.name}: {asset.triangle_count} triangles, {asset.material_count} materials")
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -1116,7 +1223,8 @@ def verify_outputs() -> None:
         ASSET_ROOT / "psx_dvr_console" / "psx_dvr_console.glb",
         ASSET_ROOT / "psx_dvr_disc" / "psx_dvr_disc.glb",
         ASSET_ROOT / "crt_tv" / "crt_tv.glb",
-        ASSET_ROOT / "psx_dvr_crt_set" / "psx_dvr_crt_set.glb",
+        ASSET_ROOT / "bookshelf" / "bookshelf.glb",
+        ASSET_ROOT / "desk" / "desk.glb",
     ]
     for path in expected:
         print(verify_glb(path))
@@ -1129,7 +1237,10 @@ def report_outputs() -> None:
     console = manifest["assets"]["psx_dvr_console"]
     disc = manifest["assets"]["psx_dvr_disc"]
     crt = manifest["assets"]["crt_tv"]
-    asset_set = manifest["assets"]["psx_dvr_crt_set"]
+    bookshelf = manifest["assets"]["bookshelf"]
+    desk = manifest["assets"]["desk"]
+    if "psx_dvr_crt_set" in manifest["assets"]:
+        raise ValueError("psx_dvr_crt_set should not be generated")
     if not (900 <= console["triangles"] <= 1800):
         raise ValueError(f"psx_dvr_console triangle count outside budget: {console['triangles']}")
     if console["texture_size"] != [256, 256]:
@@ -1142,14 +1253,22 @@ def report_outputs() -> None:
         raise ValueError(f"crt_tv triangle count outside budget: {crt['triangles']}")
     if crt["texture_size"] != [256, 256]:
         raise ValueError(f"crt_tv texture size mismatch: {crt['texture_size']}")
-    if asset_set.get("blender_import") != "Import GLB in Blender":
-        raise ValueError("psx_dvr_crt_set is missing Blender import metadata")
-    if asset_set.get("contains") != ["psx_dvr_console", "psx_dvr_disc", "crt_tv"]:
-        raise ValueError(f"psx_dvr_crt_set contains mismatch: {asset_set.get('contains')}")
+    if crt.get("screen_state") != "black_glass":
+        raise ValueError(f"crt_tv screen state mismatch: {crt.get('screen_state')}")
+    for asset_name, room_asset in (("bookshelf", bookshelf), ("desk", desk)):
+        if not (900 <= room_asset["triangles"] <= 1800):
+            raise ValueError(f"{asset_name} triangle count outside budget: {room_asset['triangles']}")
+        if room_asset["texture_size"] != [256, 256]:
+            raise ValueError(f"{asset_name} texture size mismatch: {room_asset['texture_size']}")
+    if not (bookshelf["dimensions"][2] > crt["dimensions"][2] and bookshelf["dimensions"][0] > crt["dimensions"][0]):
+        raise ValueError("bookshelf must be larger than crt_tv in width and height")
+    if not (desk["dimensions"][0] > crt["dimensions"][0] and desk["dimensions"][1] > crt["dimensions"][1]):
+        raise ValueError("desk must be larger than crt_tv in width and depth")
     print("psx_dvr_console: triangles between 900 and 1800, texture 256x256")
     print("psx_dvr_disc: triangles between 200 and 700, texture 128x128")
-    print("crt_tv: triangles between 900 and 1800, texture 256x256")
-    print("psx_dvr_crt_set: Blender-importable GLB containing console, disc, and CRT")
+    print("crt_tv: black glass screen, triangles between 900 and 1800, texture 256x256")
+    print("bookshelf: larger than CRT, triangles between 900 and 1800, texture 256x256")
+    print("desk: larger than CRT, triangles between 900 and 1800, texture 256x256")
 
 
 def main() -> None:

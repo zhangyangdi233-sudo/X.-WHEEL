@@ -1,15 +1,15 @@
-# CRT TV and Integrated Set Assets Design
+# CRT TV, Bookshelf, and Desk Assets Design
 
 ## Goal
 
-Create a low-poly CRT television asset that matches the existing PSX DVR-style console and disc assets, then export a single integrated GLB scene asset that can be imported into Blender as one arranged set.
+Create separate low-poly room props that match the existing PSX DVR-style console and disc assets: CRT television, bookshelf, and desk. Each object must be an individual GLB asset and an individual asset in the generated Blender scene.
 
 ## Palette
 
 Use these three colors as the primary palette, with small value shifts for readability:
 
-- `#3FA943`: green accent, screen glow, power light, small labels.
-- `#E8F8E4`: pale phosphor screen and light plastic highlights.
+- `#3FA943`: green accent, power lights, labels, and small screen reflections.
+- `#E8F8E4`: pale plastic highlights, book pages, and small reflective highlights.
 - `#0C1725`: deep blue-black casing, recesses, shadows, and ports.
 
 The previous console and disc should also be recolored toward this palette when regenerated, so all assets read as one coherent set.
@@ -26,38 +26,64 @@ The previous console and disc should also be recolored toward this palette when 
 - Collision: simple box collision proxy.
 - Export: GLB, texture PNG, preview PNG, and manifest metadata.
 
-## Integrated Set Brief
+## CRT Screen Revision
 
-Export one Blender-compatible GLB scene asset containing:
+The CRT screen should read as inactive black glass, not an active pale green display. Use deep blue-black material with subtle green/pale reflections and low-resolution scanline marks. The screen remains suitable for in-game content or CRT post-processing to appear on top later.
 
-- `psx_dvr_console`
-- `psx_dvr_disc`
-- `crt_tv`
+## Bookshelf Asset Brief
 
-The set should place the CRT behind the console, with the disc offset near the front. This integrated asset is intended for Blender import and scene dressing. Blender is not available in the local environment, so the deliverable is a GLB file that Blender can import, not a native `.blend` file.
+- Type: room prop / environmental furniture.
+- Gameplay purpose: readable background prop near the TV setup.
+- World size: larger than the CRT, about 2.9 units wide, 0.55 units deep, 2.4 units tall.
+- Triangle budget: 900-1,800 triangles.
+- Texture budget: one 256x256 nearest-filter texture atlas plus flat materials.
+- Export: GLB, texture PNG, preview PNG, and Blender asset.
+
+## Desk Asset Brief
+
+- Type: room prop / environmental furniture.
+- Gameplay purpose: support prop for the console/TV setup or room dressing.
+- World size: larger than the CRT, about 3.4 units wide, 1.65 units deep, 1.05 units tall.
+- Triangle budget: 900-1,800 triangles.
+- Texture budget: one 256x256 nearest-filter texture atlas plus flat materials.
+- Export: GLB, texture PNG, preview PNG, and Blender asset.
+
+## Scale Rule
+
+Generated asset metadata must enforce this relative size ordering:
+
+- `bookshelf` and `desk` are both larger than `crt_tv`.
+- `crt_tv` is larger than `psx_dvr_console`.
+- `psx_dvr_disc` remains a small separate prop.
 
 ## Visual Direction
 
-The CRT uses a chunky early-2000s desktop TV silhouette: deep blue-black shell, slightly inset pale green convex screen, right-side control panel, low-poly knobs, speaker holes, small green power light, rear tube bulge, vents, and small feet. Geometry should stay hard-edged and visibly low-poly.
+The CRT uses a chunky early-2000s desktop TV silhouette: deep blue-black shell, inset black glass screen, right-side control panel, low-poly knobs, speaker holes, small green power light, rear tube bulge, vents, and small feet. Geometry should stay hard-edged and visibly low-poly.
 
-The integrated set should preserve separate object names and stable ASCII material names so Blender users can select or edit individual pieces after importing.
+The bookshelf and desk should use the same restricted palette: deep casing/shadows, pale highlights, and green labels or worn paint accents. They should feel like part of the same PSX-era room rather than realistic furniture.
 
 ## Output Paths
 
 - `assets/3d/crt_tv/crt_tv.glb`
 - `assets/3d/crt_tv/crt_tv_texture.png`
 - `assets/3d/crt_tv/crt_tv_preview.png`
-- `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set.glb`
-- `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_texture.png`
-- `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_preview.png`
+- `assets/3d/bookshelf/bookshelf.glb`
+- `assets/3d/bookshelf/bookshelf_texture.png`
+- `assets/3d/bookshelf/bookshelf_preview.png`
+- `assets/3d/desk/desk.glb`
+- `assets/3d/desk/desk_texture.png`
+- `assets/3d/desk/desk_preview.png`
 - `assets/3d/psx_dvr_assets_manifest.json`
+- `assets/3d/psx_dvr_assets.blend`
+- `assets/3d/psx_dvr_blender_import_report.json`
 - `tools/create_psx_dvr_assets.py`
 - `tools/test_psx_dvr_assets.py`
 
 ## Verification
 
 - Run generator syntax checks.
-- Run tests that fail before CRT/set support exists and pass after implementation.
+- Run tests that fail before dark CRT/bookshelf/desk/no-set support exists and pass after implementation.
 - Validate every generated GLB with the generator's `--verify` mode.
-- Confirm `--report` enforces budgets and palette metadata.
+- Confirm `--report` enforces budgets, palette metadata, absence of `psx_dvr_crt_set`, and relative size ordering.
 - Visually inspect preview PNGs for non-empty, correctly framed assets.
+- Regenerate the Blender scene and confirm it contains only individual assets: `psx_dvr_console`, `psx_dvr_disc`, `crt_tv`, `bookshelf`, and `desk`.
