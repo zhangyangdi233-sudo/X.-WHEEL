@@ -48,6 +48,7 @@ The integrated set should preserve separate object names and stable ASCII materi
 - `assets/3d/crt_tv/crt_tv_texture.png`
 - `assets/3d/crt_tv/crt_tv_preview.png`
 - `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set.glb`
+- `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_texture.png`
 - `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_preview.png`
 - `assets/3d/psx_dvr_assets_manifest.json`
 - `tools/create_psx_dvr_assets.py`

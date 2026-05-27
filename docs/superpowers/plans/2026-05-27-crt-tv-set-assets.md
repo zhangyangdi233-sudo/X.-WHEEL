@@ -18,6 +18,7 @@
 - Create `assets/3d/crt_tv/crt_tv_texture.png`: CRT texture.
 - Create `assets/3d/crt_tv/crt_tv_preview.png`: CRT preview.
 - Create `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set.glb`: Blender-importable combined set.
+- Create `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_texture.png`: generated embedded texture source for the combined set GLB.
 - Create `assets/3d/psx_dvr_crt_set/psx_dvr_crt_set_preview.png`: combined set preview.
 - Modify `assets/3d/psx_dvr_assets_manifest.json`: add CRT and combined set metadata.
 

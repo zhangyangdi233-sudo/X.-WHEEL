@@ -12,6 +12,8 @@ ROOT = Path(r"D:\游戏制作\X. WHEEL")
 ADDON_PATH = ROOT / "tools" / "blender_mcp" / "addon.py"
 CONSOLE_GLB = ROOT / "assets" / "3d" / "psx_dvr_console" / "psx_dvr_console.glb"
 DISC_GLB = ROOT / "assets" / "3d" / "psx_dvr_disc" / "psx_dvr_disc.glb"
+CRT_GLB = ROOT / "assets" / "3d" / "crt_tv" / "crt_tv.glb"
+SET_GLB = ROOT / "assets" / "3d" / "psx_dvr_crt_set" / "psx_dvr_crt_set.glb"
 OUTPUT_BLEND = ROOT / "assets" / "3d" / "psx_dvr_assets.blend"
 REPORT_PATH = ROOT / "assets" / "3d" / "psx_dvr_blender_import_report.json"
 
@@ -101,15 +103,23 @@ def make_scene_usable() -> None:
     bpy.context.scene.world.color = (0.035, 0.037, 0.04)
 
 
-def collect_report(addon_module: str, console_objects: list[bpy.types.Object], disc_objects: list[bpy.types.Object]) -> dict:
+def collect_report(
+    addon_module: str,
+    console_objects: list[bpy.types.Object],
+    disc_objects: list[bpy.types.Object],
+    crt_objects: list[bpy.types.Object],
+    set_objects: list[bpy.types.Object],
+) -> dict:
     mesh_objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     return {
         "addon_module": addon_module,
         "blend": str(OUTPUT_BLEND),
-        "source_glbs": [str(CONSOLE_GLB), str(DISC_GLB)],
+        "source_glbs": [str(CONSOLE_GLB), str(DISC_GLB), str(CRT_GLB), str(SET_GLB)],
         "collections": {
             "psx_dvr_console": [obj.name for obj in console_objects],
             "psx_dvr_disc": [obj.name for obj in disc_objects],
+            "crt_tv": [obj.name for obj in crt_objects],
+            "psx_dvr_crt_set": [obj.name for obj in set_objects],
         },
         "mesh_object_count": len(mesh_objects),
         "material_count": len(bpy.data.materials),
@@ -121,14 +131,16 @@ def collect_report(addon_module: str, console_objects: list[bpy.types.Object], d
 def main() -> None:
     addon_module = install_blender_mcp_addon()
     clear_scene()
-    console_objects = import_glb(CONSOLE_GLB, "psx_dvr_console", -1.2)
-    disc_objects = import_glb(DISC_GLB, "psx_dvr_disc", 1.6)
+    console_objects = import_glb(CONSOLE_GLB, "psx_dvr_console", -3.0)
+    disc_objects = import_glb(DISC_GLB, "psx_dvr_disc", -1.0)
+    crt_objects = import_glb(CRT_GLB, "crt_tv", 1.0)
+    set_objects = import_glb(SET_GLB, "psx_dvr_crt_set", 3.2)
     make_scene_usable()
 
     OUTPUT_BLEND.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT_BLEND))
 
-    report = collect_report(addon_module, console_objects, disc_objects)
+    report = collect_report(addon_module, console_objects, disc_objects, crt_objects, set_objects)
     REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
 

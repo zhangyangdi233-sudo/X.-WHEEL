@@ -17,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSET_ROOT = ROOT / "assets" / "3d"
 MANIFEST_PATH = ASSET_ROOT / "psx_dvr_assets_manifest.json"
 
+PALETTE = {"green": "#3FA943", "pale": "#E8F8E4", "deep": "#0C1725"}
+PALETTE_PRIMARY = [PALETTE["green"], PALETTE["pale"], PALETTE["deep"]]
+
 
 FONT_5X7 = {
     " ": ["00000", "00000", "00000", "00000", "00000", "00000", "00000"],
@@ -128,6 +131,20 @@ def clamp_byte(value: int) -> int:
 
 def rgb_to_rgba(color: tuple[int, int, int], alpha: int = 255) -> tuple[int, int, int, int]:
     return (clamp_byte(color[0]), clamp_byte(color[1]), clamp_byte(color[2]), clamp_byte(alpha))
+
+
+def hex_to_rgb(value: str) -> tuple[int, int, int]:
+    raw = value.lstrip("#")
+    return (int(raw[0:2], 16), int(raw[2:4], 16), int(raw[4:6], 16))
+
+
+def hex_to_rgba(value: str, alpha: int = 255) -> tuple[int, int, int, int]:
+    return rgb_to_rgba(hex_to_rgb(value), alpha)
+
+
+def hex_to_float_color(value: str, alpha: float = 1.0) -> tuple[float, float, float, float]:
+    r, g, b = hex_to_rgb(value)
+    return (r / 255.0, g / 255.0, b / 255.0, alpha)
 
 
 def float_color_to_rgba(color: tuple[float, float, float, float]) -> tuple[int, int, int, int]:
@@ -439,37 +456,50 @@ class MeshBuilder:
 
 def console_materials() -> list[Material]:
     return [
-        Material("mat_warm_ivory_plastic", (0.86, 0.83, 0.73, 1.0)),
-        Material("mat_plastic_shadow", (0.62, 0.60, 0.53, 1.0)),
-        Material("mat_recess_black", (0.035, 0.038, 0.042, 1.0)),
-        Material("mat_port_dark_gray", (0.12, 0.13, 0.14, 1.0)),
-        Material("mat_muted_red_light", (0.76, 0.08, 0.055, 1.0)),
-        Material("mat_muted_green_light", (0.10, 0.62, 0.25, 1.0)),
-        Material("mat_dull_metal", (0.63, 0.66, 0.66, 1.0), metallic=0.15),
-        Material("mat_label_blue_gray", (0.20, 0.27, 0.34, 1.0)),
+        Material("mat_pale_plastic", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_pale_shadow", (0.58, 0.67, 0.58, 1.0)),
+        Material("mat_deep_recess", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_deep_panel", (0.06, 0.12, 0.19, 1.0)),
+        Material("mat_green_status_dim", (0.16, 0.48, 0.24, 1.0)),
+        Material("mat_green_status", hex_to_float_color(PALETTE["green"])),
+        Material("mat_pale_metal", (0.78, 0.86, 0.80, 1.0), metallic=0.12),
+        Material("mat_green_label", (0.18, 0.42, 0.25, 1.0)),
         Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
     ]
 
 
 def disc_materials() -> list[Material]:
     return [
-        Material("mat_silver_disc", (0.72, 0.76, 0.78, 1.0), metallic=0.2),
-        Material("mat_disc_shadow", (0.42, 0.45, 0.47, 1.0), metallic=0.1),
-        Material("mat_label_blue_gray", (0.17, 0.24, 0.33, 1.0)),
-        Material("mat_center_clear", (0.91, 0.93, 0.92, 1.0)),
+        Material("mat_pale_disc", (0.74, 0.86, 0.78, 1.0), metallic=0.12),
+        Material("mat_disc_shadow", (0.20, 0.30, 0.28, 1.0), metallic=0.08),
+        Material("mat_deep_label", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_center_pale", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def crt_materials() -> list[Material]:
+    return [
+        Material("mat_crt_deep_shell", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_crt_deep_edge", (0.025, 0.055, 0.095, 1.0)),
+        Material("mat_crt_screen_pale", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_crt_screen_green", hex_to_float_color(PALETTE["green"])),
+        Material("mat_crt_panel_green_dark", (0.13, 0.35, 0.20, 1.0)),
+        Material("mat_crt_control_dark", (0.04, 0.09, 0.14, 1.0)),
+        Material("mat_crt_highlight", (0.68, 0.88, 0.70, 1.0)),
         Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
     ]
 
 
 def build_console_texture() -> list[tuple[int, int, int, int]]:
     w = h = 256
-    pixels = make_canvas(w, h, rgb_to_rgba((219, 212, 188)))
-    ink = rgb_to_rgba((24, 25, 27))
-    red = rgb_to_rgba((166, 30, 24))
-    green = rgb_to_rgba((38, 150, 68))
-    blue = rgb_to_rgba((45, 62, 76))
-    gray = rgb_to_rgba((148, 148, 140))
-    light = rgb_to_rgba((238, 234, 212))
+    pixels = make_canvas(w, h, hex_to_rgba(PALETTE["pale"]))
+    ink = hex_to_rgba(PALETTE["deep"])
+    red = rgb_to_rgba((50, 128, 62))
+    green = hex_to_rgba(PALETTE["green"])
+    blue = rgb_to_rgba((19, 44, 49))
+    gray = rgb_to_rgba((118, 146, 126))
+    light = rgb_to_rgba((246, 255, 240))
     draw_rect(pixels, w, h, 8, 8, 118, 58, light)
     draw_rect(pixels, w, h, 12, 64, 224, 86, ink)
     draw_rect(pixels, w, h, 14, 66, 222, 68, gray)
@@ -494,7 +524,7 @@ def build_console_texture() -> list[tuple[int, int, int, int]]:
 
 def build_disc_texture() -> list[tuple[int, int, int, int]]:
     w = h = 128
-    pixels = make_canvas(w, h, rgb_to_rgba((190, 195, 198)))
+    pixels = make_canvas(w, h, rgb_to_rgba((190, 214, 196)))
     cx = cy = 64
     for y in range(h):
         for x in range(w):
@@ -502,18 +532,42 @@ def build_disc_texture() -> list[tuple[int, int, int, int]]:
             dy = y - cy
             radius = math.sqrt(dx * dx + dy * dy)
             if radius < 10:
-                pixels[y * w + x] = rgb_to_rgba((230, 233, 232))
+                pixels[y * w + x] = hex_to_rgba(PALETTE["pale"])
             elif radius < 32:
-                pixels[y * w + x] = rgb_to_rgba((34, 46, 60))
+                pixels[y * w + x] = hex_to_rgba(PALETTE["deep"])
             elif radius < 61:
-                shade = 178 + int(35 * math.sin((x + y) * 0.18))
-                pixels[y * w + x] = rgb_to_rgba((shade, shade + 3, shade + 8))
+                shade = 186 + int(28 * math.sin((x + y) * 0.18))
+                pixels[y * w + x] = rgb_to_rgba((shade - 20, shade + 12, shade - 10))
             else:
                 pixels[y * w + x] = rgb_to_rgba((0, 0, 0), 0)
-    draw_text(pixels, w, h, 37, 49, "DISC", rgb_to_rgba((224, 230, 230)), 1)
-    draw_text(pixels, w, h, 43, 64, "03", rgb_to_rgba((224, 230, 230)), 1)
-    draw_line(pixels, w, h, 18, 80, 110, 50, rgb_to_rgba((240, 245, 247)))
-    draw_line(pixels, w, h, 20, 84, 112, 54, rgb_to_rgba((126, 134, 141)))
+    draw_text(pixels, w, h, 37, 49, "DISC", hex_to_rgba(PALETTE["green"]), 1)
+    draw_text(pixels, w, h, 43, 64, "03", hex_to_rgba(PALETTE["green"]), 1)
+    draw_line(pixels, w, h, 18, 80, 110, 50, hex_to_rgba(PALETTE["pale"]))
+    draw_line(pixels, w, h, 20, 84, 112, 54, rgb_to_rgba((70, 122, 82)))
+    return pixels
+
+
+def build_crt_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 256
+    pixels = make_canvas(w, h, hex_to_rgba(PALETTE["deep"]))
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    dark = rgb_to_rgba((5, 14, 24))
+    mid = rgb_to_rgba((16, 50, 42))
+    draw_rect(pixels, w, h, 8, 8, 146, 112, pale)
+    for y in range(16, 108, 8):
+        draw_line(pixels, w, h, 14, y, 140, y + 2, rgb_to_rgba((94, 178, 103)))
+    draw_rect(pixels, w, h, 158, 8, 244, 112, mid)
+    draw_text(pixels, w, h, 171, 24, "CRT", pale, 2)
+    draw_text(pixels, w, h, 170, 50, "XW-03", green, 1)
+    for y in range(76, 104, 9):
+        draw_line(pixels, w, h, 168, y, 232, y, green)
+    draw_rect(pixels, w, h, 8, 128, 246, 158, dark)
+    for x in range(18, 238, 16):
+        draw_rect(pixels, w, h, x, 134, x + 5, 152, green)
+    draw_rect(pixels, w, h, 8, 174, 246, 246, rgb_to_rgba((8, 25, 38)))
+    for x, y in ((28, 194), (68, 220), (174, 199), (216, 228)):
+        draw_rect(pixels, w, h, x, y, x + 24, y + 4, rgb_to_rgba((34, 88, 50)))
     return pixels
 
 
@@ -585,6 +639,108 @@ def build_disc_asset() -> Asset:
         x = math.cos(angle) * 0.25
         y = math.sin(angle) * 0.25
         b.add_box(f"disc_pixel_label_tick_{idx}", (x, y, 0.095), (0.11, 0.018, 0.01), 1)
+    return asset
+
+
+def build_crt_tv_asset() -> Asset:
+    asset = Asset(
+        name="crt_tv",
+        output_dir=ASSET_ROOT / "crt_tv",
+        texture_size=(256, 256),
+        texture_pixels=build_crt_texture(),
+        materials=crt_materials(),
+        notes=["CRT television prop using the shared #3FA943/#E8F8E4/#0C1725 palette."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("crt_main_shell", (0.0, 0.0, 0.78), (2.22, 1.54, 1.36), 0)
+    b.add_box("crt_bottom_shadow", (0.0, 0.0, 0.08), (2.34, 1.62, 0.16), 1)
+    b.add_box("crt_rear_tube_hump", (0.0, 0.62, 0.82), (1.58, 0.82, 1.04), 1)
+    b.add_box("crt_front_bezel", (-0.28, -0.805, 0.85), (1.42, 0.08, 0.96), 1)
+    b.add_box("crt_screen_glass", (-0.32, -0.856, 0.86), (1.08, 0.045, 0.70), 2)
+    b.add_box("crt_screen_glow_center", (-0.32, -0.884, 0.86), (0.86, 0.018, 0.52), 6)
+    for idx, z in enumerate([0.58, 0.70, 0.82, 0.94, 1.06, 1.18]):
+        b.add_box(f"crt_scanline_{idx:02d}", (-0.32, -0.898, z), (0.96, 0.012, 0.018), 3)
+    b.add_box("crt_control_panel", (0.74, -0.852, 0.86), (0.44, 0.065, 0.84), 4)
+    b.add_cylinder_y("crt_channel_knob", (0.74, -0.905, 1.07), 0.18, 0.09, 14, 5)
+    b.add_cylinder_y("crt_volume_knob", (0.74, -0.905, 0.74), 0.14, 0.08, 12, 5)
+    b.add_box("crt_power_light", (0.98, -0.898, 0.48), (0.08, 0.025, 0.08), 3)
+    for row, z in enumerate([0.55, 0.66, 0.77, 0.88, 0.99, 1.10]):
+        for col, x in enumerate([0.52, 0.62, 0.86, 0.96]):
+            b.add_cylinder_y(f"crt_speaker_hole_{row:02d}_{col:02d}", (x, -0.902, z), 0.028, 0.045, 8, 5)
+    for idx, x in enumerate([-0.86, -0.58, -0.30, -0.02, 0.26, 0.54, 0.82]):
+        b.add_box(f"crt_top_vent_{idx:02d}", (x, 0.02, 1.475), (0.07, 0.58, 0.035), 5)
+    for idx, z in enumerate([0.44, 0.58, 0.72, 0.86, 1.00, 1.14]):
+        b.add_box(f"crt_left_side_vent_{idx:02d}", (-1.13, 0.16, z), (0.04, 0.46, 0.055), 5)
+        b.add_box(f"crt_right_side_vent_{idx:02d}", (1.13, 0.16, z), (0.04, 0.46, 0.055), 5)
+    b.add_box("crt_back_panel", (0.0, 1.048, 0.86), (1.22, 0.055, 0.72), 5)
+    b.add_box("crt_back_warning_label", (0.0, 1.082, 1.04), (0.52, 0.025, 0.18), 4)
+    b.add_box("crt_back_cable_port", (0.0, 1.086, 0.58), (0.34, 0.026, 0.16), 1)
+    for idx, (x, y) in enumerate([(-0.78, -0.46), (0.78, -0.46), (-0.72, 0.54), (0.72, 0.54)]):
+        b.add_box(f"crt_rubber_foot_{idx}", (x, y, -0.02), (0.28, 0.22, 0.10), 5)
+    for idx, x in enumerate([-0.88, -0.48, -0.08, 0.32]):
+        b.add_box(f"crt_pixel_scuff_{idx}", (x, -0.902, 0.32), (0.16, 0.014, 0.018), 4)
+    b.add_box("col_crt_tv_box", (0.0, 0.05, 0.78), (2.34, 1.70, 1.56), 7)
+    return asset
+
+
+def build_set_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 256
+    pixels = make_canvas(w, h, hex_to_rgba(PALETTE["deep"]))
+    draw_text(pixels, w, h, 24, 28, "XW SET", hex_to_rgba(PALETTE["pale"]), 2)
+    draw_text(pixels, w, h, 26, 58, "CRT + DVR + DISC", hex_to_rgba(PALETTE["green"]), 1)
+    for y in range(96, 176, 8):
+        draw_line(pixels, w, h, 34, y, 220, y + 3, rgb_to_rgba((40, 124, 61)))
+    return pixels
+
+
+def copy_materials_with_prefix(materials: list[Material], prefix: str) -> list[Material]:
+    return [Material(f"{prefix}_{material.name}", material.color, material.roughness, material.metallic, material.alpha_mode) for material in materials]
+
+
+def transform_primitive(
+    primitive: Primitive,
+    prefix: str,
+    material_offset: int,
+    translation: tuple[float, float, float],
+    scale: float = 1.0,
+) -> Primitive:
+    tx, ty, tz = translation
+    return Primitive(
+        name=f"{prefix}_{primitive.name}",
+        material_index=primitive.material_index + material_offset,
+        positions=[(x * scale + tx, y * scale + ty, z * scale + tz) for x, y, z in primitive.positions],
+        normals=list(primitive.normals),
+        uvs=list(primitive.uvs),
+        colors=list(primitive.colors),
+        indices=list(primitive.indices),
+    )
+
+
+def build_integrated_set_asset(console: Asset, disc: Asset, crt: Asset) -> Asset:
+    materials: list[Material] = []
+    primitives: list[Primitive] = []
+    placements = [
+        ("console", console, (0.0, -0.55, 0.0), 1.0),
+        ("disc", disc, (-1.35, -2.35, 0.04), 1.0),
+        ("crt", crt, (0.0, 1.55, 0.08), 1.0),
+    ]
+    for prefix, source, translation, scale in placements:
+        material_offset = len(materials)
+        materials.extend(copy_materials_with_prefix(source.materials, prefix))
+        primitives.extend(
+            transform_primitive(primitive, prefix, material_offset, translation, scale)
+            for primitive in source.export_primitives
+        )
+
+    asset = Asset(
+        name="psx_dvr_crt_set",
+        output_dir=ASSET_ROOT / "psx_dvr_crt_set",
+        texture_size=(256, 256),
+        texture_pixels=build_set_texture(),
+        materials=materials,
+        primitives=primitives,
+        notes=["Single GLB scene asset. In Blender, use File > Import > glTF 2.0 and select this GLB."],
+    )
     return asset
 
 
@@ -873,10 +1029,22 @@ def render_preview(asset: Asset, path: Path, width: int = 960, height: int = 720
 
 
 def generate_assets() -> list[Asset]:
-    assets = [build_console_asset(), build_disc_asset()]
+    console = build_console_asset()
+    disc = build_disc_asset()
+    crt = build_crt_tv_asset()
+    asset_set = build_integrated_set_asset(console, disc, crt)
+    assets = [console, disc, crt, asset_set]
     manifest = {
         "generator": "tools/create_psx_dvr_assets.py",
-        "source_note": "GLB geometry is generated reproducibly by script, then imported into assets/3d/psx_dvr_assets.blend as two Blender assets.",
+        "source_note": "GLB geometry is generated reproducibly by script. Blender can import the individual GLBs or the integrated set GLB.",
+        "palette": {
+            "primary": PALETTE_PRIMARY,
+            "usage": {
+                "#3FA943": "green screen glow, status lights, labels, and accents",
+                "#E8F8E4": "pale screen/plastic highlights and disc center",
+                "#0C1725": "deep shell, recesses, ports, and shadows",
+            },
+        },
         "assets": {},
     }
     for asset in assets:
@@ -894,6 +1062,9 @@ def generate_assets() -> list[Asset]:
             "source_parts": [primitive.name for primitive in asset.export_primitives],
             "notes": asset.notes,
         }
+        if asset.name == "psx_dvr_crt_set":
+            manifest["assets"][asset.name]["contains"] = ["psx_dvr_console", "psx_dvr_disc", "crt_tv"]
+            manifest["assets"][asset.name]["blender_import"] = "Import GLB in Blender"
         print(f"{asset.name}: {asset.triangle_count} triangles, {asset.material_count} materials")
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -944,6 +1115,8 @@ def verify_outputs() -> None:
     expected = [
         ASSET_ROOT / "psx_dvr_console" / "psx_dvr_console.glb",
         ASSET_ROOT / "psx_dvr_disc" / "psx_dvr_disc.glb",
+        ASSET_ROOT / "crt_tv" / "crt_tv.glb",
+        ASSET_ROOT / "psx_dvr_crt_set" / "psx_dvr_crt_set.glb",
     ]
     for path in expected:
         print(verify_glb(path))
@@ -951,8 +1124,12 @@ def verify_outputs() -> None:
 
 def report_outputs() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    if manifest.get("palette", {}).get("primary") != PALETTE_PRIMARY:
+        raise ValueError(f"palette mismatch: {manifest.get('palette')}")
     console = manifest["assets"]["psx_dvr_console"]
     disc = manifest["assets"]["psx_dvr_disc"]
+    crt = manifest["assets"]["crt_tv"]
+    asset_set = manifest["assets"]["psx_dvr_crt_set"]
     if not (900 <= console["triangles"] <= 1800):
         raise ValueError(f"psx_dvr_console triangle count outside budget: {console['triangles']}")
     if console["texture_size"] != [256, 256]:
@@ -961,8 +1138,18 @@ def report_outputs() -> None:
         raise ValueError(f"psx_dvr_disc triangle count outside budget: {disc['triangles']}")
     if disc["texture_size"] != [128, 128]:
         raise ValueError(f"psx_dvr_disc texture size mismatch: {disc['texture_size']}")
+    if not (900 <= crt["triangles"] <= 1800):
+        raise ValueError(f"crt_tv triangle count outside budget: {crt['triangles']}")
+    if crt["texture_size"] != [256, 256]:
+        raise ValueError(f"crt_tv texture size mismatch: {crt['texture_size']}")
+    if asset_set.get("blender_import") != "Import GLB in Blender":
+        raise ValueError("psx_dvr_crt_set is missing Blender import metadata")
+    if asset_set.get("contains") != ["psx_dvr_console", "psx_dvr_disc", "crt_tv"]:
+        raise ValueError(f"psx_dvr_crt_set contains mismatch: {asset_set.get('contains')}")
     print("psx_dvr_console: triangles between 900 and 1800, texture 256x256")
     print("psx_dvr_disc: triangles between 200 and 700, texture 128x128")
+    print("crt_tv: triangles between 900 and 1800, texture 256x256")
+    print("psx_dvr_crt_set: Blender-importable GLB containing console, disc, and CRT")
 
 
 def main() -> None:
