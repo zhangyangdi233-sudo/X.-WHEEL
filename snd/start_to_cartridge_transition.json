@@ -1,0 +1,25 @@
+{
+  "title": "X. WHEEL - Start To Cartridge Bridge",
+  "version": "prototype-01",
+  "role": "start-game camera bridge",
+  "duration_seconds": 3.2,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 141120,
+    "mode": "none"
+  },
+  "style_tags": [
+    "dreamcore",
+    "denpa",
+    "lo-fi",
+    "y2k",
+    "transition"
+  ],
+  "production_notes": [
+    "Short one-shot bridge for the main menu camera push toward the desk.",
+    "The title motif narrows into a cartridge boot chirp and lands on the cartridge select harmony."
+  ]
+}

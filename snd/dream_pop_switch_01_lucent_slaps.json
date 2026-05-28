@@ -1,0 +1,35 @@
+{
+  "title": "X. WHEEL - Lucent Hook Trial",
+  "version": "prototype-03",
+  "role": "switchable chapter bgm",
+  "track_id": "lucent_slaps",
+  "mood": "soft-floating-reader",
+  "duration_seconds": 96.0,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 4233600,
+    "mode": "forward"
+  },
+  "style_tags": [
+    "dream_pop",
+    "bright_idol_pop",
+    "anime_pop",
+    "melody_led",
+    "light_noise",
+    "lo-fi"
+  ],
+  "noise_amount": "light",
+  "bass_articulation": "soft-pop",
+  "hard_transients": "removed",
+  "melody_role": "catchy lead hook",
+  "production_notes": [
+    "Original procedural synthesis inspired by the broad bright idol-pop feeling of the provided references.",
+    "Prototype 03 removes slap/click emphasis and centers a clear 16-second lead hook with soft bass support.",
+    "No melodies, samples, or arrangements are copied from reference tracks."
+  ],
+  "lead_hook": "16-second singable refrain",
+  "reference_direction": "bright-original-idol-pop"
+}

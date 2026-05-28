@@ -8,7 +8,17 @@
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\bookshelf\\bookshelf.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\desk\\desk.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\beanbag_chair\\beanbag_chair.glb",
-    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\disc_rug\\disc_rug.glb"
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\disc_rug\\disc_rug.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\poster\\poster.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\draft_paper\\draft_paper.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\table_lamp\\table_lamp.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\pencil\\pencil.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\eraser\\eraser.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\potted_plant\\potted_plant.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\wheeled_lounge_chair\\wheeled_lounge_chair.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\floor_book\\floor_book.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\cd_case\\cd_case.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\emi_room\\emi_room.glb"
   ],
   "collections": {
     "psx_dvr_console": [
@@ -31,18 +41,58 @@
     ],
     "disc_rug": [
       "disc_rug"
+    ],
+    "poster": [
+      "poster"
+    ],
+    "draft_paper": [
+      "draft_paper"
+    ],
+    "table_lamp": [
+      "table_lamp"
+    ],
+    "pencil": [
+      "pencil"
+    ],
+    "eraser": [
+      "eraser"
+    ],
+    "potted_plant": [
+      "potted_plant"
+    ],
+    "wheeled_lounge_chair": [
+      "wheeled_lounge_chair"
+    ],
+    "floor_book": [
+      "floor_book"
+    ],
+    "cd_case": [
+      "cd_case"
+    ],
+    "emi_room": [
+      "emi_room"
     ]
   },
-  "mesh_object_count": 7,
-  "material_count": 43,
+  "mesh_object_count": 17,
+  "material_count": 277,
   "image_count": 2,
   "asset_marked_objects": [
     "beanbag_chair",
     "bookshelf",
+    "cd_case",
     "crt_tv",
     "desk",
     "disc_rug",
+    "draft_paper",
+    "emi_room",
+    "eraser",
+    "floor_book",
+    "pencil",
+    "poster",
+    "potted_plant",
     "psx_dvr_console",
-    "psx_dvr_disc"
+    "psx_dvr_disc",
+    "table_lamp",
+    "wheeled_lounge_chair"
   ]
 }

@@ -1,0 +1,31 @@
+{
+  "title": "X. WHEEL - Cartridge Select Signal Loop",
+  "version": "prototype-01",
+  "role": "cartridge select screen",
+  "duration_seconds": 72.0,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 3175200,
+    "mode": "forward"
+  },
+  "style_tags": [
+    "psychedelic",
+    "dreamcore",
+    "denpa",
+    "lo-fi",
+    "y2k"
+  ],
+  "melody_role": "three-cartridge selection motif",
+  "script_motifs": [
+    "fries/fire dream",
+    "empty-stomach CRT dialogue",
+    "BBS refresh green-light"
+  ],
+  "production_notes": [
+    "Three 24-second sections map loosely to the three cartridges, then fold back into the opening.",
+    "The loop remains quiet enough for drag-and-drop interaction but gives the selection screen a clearer melody."
+  ]
+}

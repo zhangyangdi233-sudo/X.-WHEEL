@@ -17,8 +17,38 @@ BOOKSHELF_GLB = ROOT / "assets" / "3d" / "bookshelf" / "bookshelf.glb"
 DESK_GLB = ROOT / "assets" / "3d" / "desk" / "desk.glb"
 BEANBAG_GLB = ROOT / "assets" / "3d" / "beanbag_chair" / "beanbag_chair.glb"
 RUG_GLB = ROOT / "assets" / "3d" / "disc_rug" / "disc_rug.glb"
+EMI_ROOM_GLB = ROOT / "assets" / "3d" / "emi_room" / "emi_room.glb"
+POSTER_GLB = ROOT / "assets" / "3d" / "poster" / "poster.glb"
+DRAFT_PAPER_GLB = ROOT / "assets" / "3d" / "draft_paper" / "draft_paper.glb"
+TABLE_LAMP_GLB = ROOT / "assets" / "3d" / "table_lamp" / "table_lamp.glb"
+PENCIL_GLB = ROOT / "assets" / "3d" / "pencil" / "pencil.glb"
+ERASER_GLB = ROOT / "assets" / "3d" / "eraser" / "eraser.glb"
+POTTED_PLANT_GLB = ROOT / "assets" / "3d" / "potted_plant" / "potted_plant.glb"
+WHEELED_LOUNGE_CHAIR_GLB = ROOT / "assets" / "3d" / "wheeled_lounge_chair" / "wheeled_lounge_chair.glb"
+FLOOR_BOOK_GLB = ROOT / "assets" / "3d" / "floor_book" / "floor_book.glb"
+CD_CASE_GLB = ROOT / "assets" / "3d" / "cd_case" / "cd_case.glb"
 OUTPUT_BLEND = ROOT / "assets" / "3d" / "psx_dvr_assets.blend"
 REPORT_PATH = ROOT / "assets" / "3d" / "psx_dvr_blender_import_report.json"
+
+ASSET_SPECS = [
+    ("psx_dvr_console", CONSOLE_GLB),
+    ("psx_dvr_disc", DISC_GLB),
+    ("crt_tv", CRT_GLB),
+    ("bookshelf", BOOKSHELF_GLB),
+    ("desk", DESK_GLB),
+    ("beanbag_chair", BEANBAG_GLB),
+    ("disc_rug", RUG_GLB),
+    ("poster", POSTER_GLB),
+    ("draft_paper", DRAFT_PAPER_GLB),
+    ("table_lamp", TABLE_LAMP_GLB),
+    ("pencil", PENCIL_GLB),
+    ("eraser", ERASER_GLB),
+    ("potted_plant", POTTED_PLANT_GLB),
+    ("wheeled_lounge_chair", WHEELED_LOUNGE_CHAIR_GLB),
+    ("floor_book", FLOOR_BOOK_GLB),
+    ("cd_case", CD_CASE_GLB),
+    ("emi_room", EMI_ROOM_GLB),
+]
 
 
 def install_blender_mcp_addon() -> str:
@@ -108,28 +138,14 @@ def make_scene_usable() -> None:
 
 def collect_report(
     addon_module: str,
-    console_objects: list[bpy.types.Object],
-    disc_objects: list[bpy.types.Object],
-    crt_objects: list[bpy.types.Object],
-    bookshelf_objects: list[bpy.types.Object],
-    desk_objects: list[bpy.types.Object],
-    beanbag_objects: list[bpy.types.Object],
-    rug_objects: list[bpy.types.Object],
+    imported_by_asset: dict[str, list[bpy.types.Object]],
 ) -> dict:
     mesh_objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     return {
         "addon_module": addon_module,
         "blend": str(OUTPUT_BLEND),
-        "source_glbs": [str(CONSOLE_GLB), str(DISC_GLB), str(CRT_GLB), str(BOOKSHELF_GLB), str(DESK_GLB), str(BEANBAG_GLB), str(RUG_GLB)],
-        "collections": {
-            "psx_dvr_console": [obj.name for obj in console_objects],
-            "psx_dvr_disc": [obj.name for obj in disc_objects],
-            "crt_tv": [obj.name for obj in crt_objects],
-            "bookshelf": [obj.name for obj in bookshelf_objects],
-            "desk": [obj.name for obj in desk_objects],
-            "beanbag_chair": [obj.name for obj in beanbag_objects],
-            "disc_rug": [obj.name for obj in rug_objects],
-        },
+        "source_glbs": [str(path) for _, path in ASSET_SPECS],
+        "collections": {name: [obj.name for obj in objects] for name, objects in imported_by_asset.items()},
         "mesh_object_count": len(mesh_objects),
         "material_count": len(bpy.data.materials),
         "image_count": len(bpy.data.images),
@@ -140,19 +156,15 @@ def collect_report(
 def main() -> None:
     addon_module = install_blender_mcp_addon()
     clear_scene()
-    console_objects = import_glb(CONSOLE_GLB, "psx_dvr_console", -5.0)
-    disc_objects = import_glb(DISC_GLB, "psx_dvr_disc", -2.8)
-    crt_objects = import_glb(CRT_GLB, "crt_tv", -0.7)
-    bookshelf_objects = import_glb(BOOKSHELF_GLB, "bookshelf", 2.0)
-    desk_objects = import_glb(DESK_GLB, "desk", 5.0)
-    beanbag_objects = import_glb(BEANBAG_GLB, "beanbag_chair", 7.8)
-    rug_objects = import_glb(RUG_GLB, "disc_rug", 10.2)
+    imported_by_asset = {}
+    for index, (name, path) in enumerate(ASSET_SPECS):
+        imported_by_asset[name] = import_glb(path, name, -8.0 + index * 1.15)
     make_scene_usable()
 
     OUTPUT_BLEND.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT_BLEND))
 
-    report = collect_report(addon_module, console_objects, disc_objects, crt_objects, bookshelf_objects, desk_objects, beanbag_objects, rug_objects)
+    report = collect_report(addon_module, imported_by_asset)
     REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
 

@@ -23,6 +23,8 @@ var _is_zooming: bool = false
 # Desk camera target — looking down at the desk/console from a low angle
 const DESK_CAM_POS := Vector3(0, 1.8, 4.0)
 const DESK_CAM_LOOK := Vector3(0, 1.3, -1.5)
+const MENU_BGM: AudioStream = preload("res://snd/main_menu_dreamcore_loop.wav")
+const START_GAME_TRANSITION: AudioStream = preload("res://snd/start_to_cartridge_transition.wav")
 
 
 func _ready() -> void:
@@ -30,6 +32,7 @@ func _ready() -> void:
 	_setup_ui()
 	_connect_buttons()
 	_setup_crt()
+	_start_menu_bgm()
 	_apply_language()
 
 	# Continue button — show if any save exists or cartridges have been played
@@ -177,6 +180,12 @@ func _setup_crt() -> void:
 		crt_screen.material_override = mat
 
 
+func _start_menu_bgm() -> void:
+	if MENU_BGM is AudioStreamWAV:
+		MENU_BGM.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	AudioManager.play_bgm(MENU_BGM, 2.0)
+
+
 func _apply_language() -> void:
 	var is_cn := LanguageManager.current_language == LanguageManager.Language.CHINESE
 	if language_btn:
@@ -257,6 +266,8 @@ func _on_quit_pressed() -> void:
 func _zoom_to_desk(target_scene: String) -> void:
 	if _is_zooming: return
 	_is_zooming = true
+	AudioManager.play_bgm_stinger(START_GAME_TRANSITION, 1.0)
+	AudioManager.stop_bgm(0.8)
 
 	# Hide menu UI
 	if title_label:

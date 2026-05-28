@@ -37,6 +37,12 @@ const CARTRIDGE_COLORS := {
 	"Cartridge2": Color(0.2, 0.35, 0.85),
 	"Cartridge3": Color(0.85, 0.75, 0.2),
 }
+const CARTRIDGE_SELECT_BGM: AudioStream = preload("res://snd/cartridge_select_signal_loop.wav")
+const INSERT_SFX := {
+	"Cartridge1": preload("res://snd/cartridge1_insert.wav"),
+	"Cartridge2": preload("res://snd/cartridge2_insert.wav"),
+	"Cartridge3": preload("res://snd/cartridge3_insert.wav"),
+}
 
 
 func _ready() -> void:
@@ -56,6 +62,7 @@ func _ready() -> void:
 	_setup_cartridges()
 	_apply_language()
 	_update_instruction()
+	_start_cartridge_select_bgm()
 
 
 func _randomize_cartridge_positions() -> void:
@@ -284,6 +291,12 @@ func _update_instruction() -> void:
 	instruction_label.text = "拖拽卡带插入游戏机" if is_cn else "カートリッジをドラッグして入れる"
 
 
+func _start_cartridge_select_bgm() -> void:
+	if CARTRIDGE_SELECT_BGM is AudioStreamWAV:
+		CARTRIDGE_SELECT_BGM.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	AudioManager.play_bgm(CARTRIDGE_SELECT_BGM, 1.0)
+
+
 func _get_cartridge_label(cart_name: String) -> String:
 	var is_cn := LanguageManager.current_language == LanguageManager.Language.CHINESE
 	var info: Dictionary = CARTRIDGE_INFO.get(cart_name, {})
@@ -427,6 +440,9 @@ func _select_cartridge(cart_name: String) -> void:
 		slot = Vector3(0, 1.3, -1.2)
 
 	var scene_path: String = CARTRIDGE_INFO.get(cart_name, {}).get("scene", "")
+	var insert_sfx: AudioStream = INSERT_SFX.get(cart_name)
+	if insert_sfx:
+		AudioManager.play_sfx(insert_sfx, -2.0)
 
 	if mesh:
 		var tween := create_tween()
@@ -441,6 +457,7 @@ func _select_cartridge(cart_name: String) -> void:
 		return
 
 	GlobalState.current_cartridge = cart_name.to_lower()
+	AudioManager.stop_bgm(0.5)
 
 	# Direct fade-to-black + scene change
 	# (cartridge scene handles its own CRT power-on fade-in)

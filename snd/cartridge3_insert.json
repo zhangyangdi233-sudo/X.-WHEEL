@@ -1,0 +1,26 @@
+{
+  "title": "X. WHEEL - Cartridge3 Insert SFX",
+  "version": "prototype-01",
+  "role": "cartridge insertion sfx",
+  "cartridge": "Cartridge3",
+  "motif": "bbs-green-refresh",
+  "duration_seconds": 3.0,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 132300,
+    "mode": "none"
+  },
+  "style_tags": [
+    "mechanical",
+    "lo-fi",
+    "denpa",
+    "y2k"
+  ],
+  "production_notes": [
+    "Original procedural synthesis for the cartridge insertion animation.",
+    "Each cartridge has a distinct tail color while sharing a tactile plastic click."
+  ]
+}

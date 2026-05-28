@@ -19,6 +19,9 @@ MANIFEST_PATH = ASSET_ROOT / "psx_dvr_assets_manifest.json"
 
 PALETTE = {"green": "#3FA943", "pale": "#E8F8E4", "deep": "#0C1725"}
 PALETTE_PRIMARY = [PALETTE["green"], PALETTE["pale"], PALETTE["deep"]]
+SCALE_REFERENCE = "five_head_chibi_1_40m"
+DETAIL_LEVEL = "higher_detail_lowpoly"
+COLOR_POLICY = "preserve_existing_palette"
 
 
 FONT_5X7 = {
@@ -507,6 +510,46 @@ class MeshBuilder:
         self.add_primitive(name, material_index, rotated_positions, rotated_normals, primitive.uvs, primitive.indices)
 
 
+def fit_asset_to_dimensions(asset: Asset, target: tuple[float, float, float]) -> None:
+    all_positions = [position for primitive in asset.primitives for position in primitive.positions]
+    if not all_positions:
+        asset.dimensions = target
+        return
+    min_x = min(position[0] for position in all_positions)
+    max_x = max(position[0] for position in all_positions)
+    min_y = min(position[1] for position in all_positions)
+    max_y = max(position[1] for position in all_positions)
+    min_z = min(position[2] for position in all_positions)
+    max_z = max(position[2] for position in all_positions)
+    source = (max_x - min_x, max_y - min_y, max_z - min_z)
+    sx = target[0] / source[0] if source[0] else 1.0
+    sy = target[1] / source[1] if source[1] else 1.0
+    sz = target[2] / source[2] if source[2] else 1.0
+    cx = (min_x + max_x) * 0.5
+    cy = (min_y + max_y) * 0.5
+
+    for primitive in asset.primitives:
+        primitive.positions = [((x - cx) * sx, (y - cy) * sy, (z - min_z) * sz) for x, y, z in primitive.positions]
+        transformed_normals = []
+        for nx, ny, nz in primitive.normals:
+            ax = nx / max(sx, 0.0001)
+            ay = ny / max(sy, 0.0001)
+            az = nz / max(sz, 0.0001)
+            length = math.sqrt(ax * ax + ay * ay + az * az) or 1.0
+            transformed_normals.append((ax / length, ay / length, az / length))
+        primitive.normals = transformed_normals
+    asset.dimensions = target
+
+
+def finalize_asset(asset: Asset, target_dimensions: tuple[float, float, float] | None = None) -> Asset:
+    if target_dimensions is not None:
+        fit_asset_to_dimensions(asset, target_dimensions)
+    asset.manifest_extra.setdefault("scale_reference", SCALE_REFERENCE)
+    asset.manifest_extra.setdefault("detail_level", DETAIL_LEVEL)
+    asset.manifest_extra.setdefault("color_policy", COLOR_POLICY)
+    return asset
+
+
 def console_materials() -> list[Material]:
     return [
         Material("mat_pale_plastic", hex_to_float_color(PALETTE["pale"])),
@@ -586,6 +629,39 @@ def disc_rug_materials() -> list[Material]:
         Material("mat_rug_deep_rim", hex_to_float_color(PALETTE["deep"]), roughness=0.95),
         Material("mat_rug_pale_print", hex_to_float_color(PALETTE["pale"]), roughness=0.98),
         Material("mat_rug_center_label", (0.030, 0.035, 0.040, 1.0), roughness=0.9),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def room_materials() -> list[Material]:
+    return [
+        Material("mat_room_wall_pale", (0.74, 0.83, 0.74, 1.0)),
+        Material("mat_room_floor_deep", (0.045, 0.070, 0.075, 1.0)),
+        Material("mat_room_deep_trim", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_room_poster_dark", (0.030, 0.040, 0.048, 1.0)),
+        Material("mat_room_poster_green", hex_to_float_color(PALETTE["green"])),
+        Material("mat_room_poster_pale", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_room_paper", (0.86, 0.94, 0.84, 1.0)),
+        Material("mat_room_lamp_glow", (0.55, 0.92, 0.58, 1.0), roughness=0.55),
+        Material("mat_room_chair_fabric", (0.11, 0.30, 0.18, 1.0), roughness=0.95),
+        Material("mat_room_chair_metal", (0.42, 0.50, 0.45, 1.0), metallic=0.18),
+        Material("mat_room_plant_pot", (0.10, 0.18, 0.16, 1.0)),
+        Material("mat_room_plant_leaf", (0.18, 0.58, 0.25, 1.0)),
+        Material("mat_room_book_spine", (0.06, 0.12, 0.18, 1.0)),
+        Material("mat_room_cd_case", (0.55, 0.70, 0.66, 1.0), roughness=0.62),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def prop_materials() -> list[Material]:
+    return [
+        Material("mat_prop_deep", hex_to_float_color(PALETTE["deep"])),
+        Material("mat_prop_green", hex_to_float_color(PALETTE["green"])),
+        Material("mat_prop_pale", hex_to_float_color(PALETTE["pale"])),
+        Material("mat_prop_dim_green", (0.13, 0.34, 0.20, 1.0)),
+        Material("mat_prop_shadow", (0.025, 0.050, 0.070, 1.0)),
+        Material("mat_prop_glass", (0.40, 0.62, 0.58, 0.72), roughness=0.30, metallic=0.06, alpha_mode="BLEND"),
+        Material("mat_prop_metal", (0.50, 0.58, 0.54, 1.0), roughness=0.55, metallic=0.20),
         Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
     ]
 
@@ -680,7 +756,7 @@ def build_console_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_console_texture(),
         materials=console_materials(),
-        dimensions=(3.18, 3.28, 1.00),
+        dimensions=(0.44, 0.40, 0.14),
         notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
@@ -722,7 +798,16 @@ def build_console_asset() -> Asset:
         b.add_cylinder_z(f"console_top_screw_{idx}", (x, y, 0.973), 0.055, 0.018, 8, 6)
     for idx, x in enumerate([-1.42, -0.96, -0.50, -0.04, 0.42, 0.88, 1.34]):
         b.add_box(f"console_front_pixel_scuff_{idx}", (x, -1.682, 0.755), (0.12, 0.018, 0.018), 1)
-    return asset
+    for row, y in enumerate([-1.22, -0.96, -0.70, -0.44, -0.18, 0.08, 0.34, 0.60, 0.86, 1.12]):
+        for col, x in enumerate([-1.30, -1.02, -0.74, -0.46, -0.18, 0.10, 0.38, 0.66, 0.94, 1.22]):
+            if (row + col) % 2 == 0:
+                b.add_box(
+                    f"console_pixel_panel_detail_{row:02d}_{col:02d}",
+                    (x, y, 0.982),
+                    (0.080, 0.026, 0.010),
+                    6 if (row + col) % 2 else 1,
+                )
+    return finalize_asset(asset, (0.44, 0.40, 0.14))
 
 
 def build_disc_asset() -> Asset:
@@ -732,18 +817,19 @@ def build_disc_asset() -> Asset:
         texture_size=(128, 128),
         texture_pixels=build_disc_texture(),
         materials=disc_materials(),
-        dimensions=(0.96, 0.96, 0.10),
+        dimensions=(0.12, 0.12, 0.018),
         notes=["Generated as one GLB mesh/node for clean Blender import; source geometry is reproducible from tools/create_psx_dvr_assets.py."],
     )
     b = MeshBuilder(asset)
-    b.add_cylinder_z("disc_outer_silver_ring", (0.0, 0.0, 0.035), 0.48, 0.055, 24, 0, hole_radius=0.075)
-    b.add_cylinder_z("disc_printed_label_ring", (0.0, 0.0, 0.069), 0.30, 0.018, 24, 2, hole_radius=0.11)
-    b.add_cylinder_z("disc_inner_clear_ring", (0.0, 0.0, 0.083), 0.14, 0.022, 12, 3, hole_radius=0.075)
-    for idx, angle in enumerate([0, math.pi * 0.5, math.pi, math.pi * 1.5]):
+    b.add_cylinder_z("disc_outer_silver_ring", (0.0, 0.0, 0.035), 0.48, 0.055, 48, 0, hole_radius=0.075)
+    b.add_cylinder_z("disc_printed_label_ring", (0.0, 0.0, 0.069), 0.30, 0.018, 48, 2, hole_radius=0.11)
+    b.add_cylinder_z("disc_inner_clear_ring", (0.0, 0.0, 0.083), 0.14, 0.022, 32, 3, hole_radius=0.075)
+    for idx in range(12):
+        angle = math.tau * idx / 12.0
         x = math.cos(angle) * 0.25
         y = math.sin(angle) * 0.25
         b.add_box(f"disc_pixel_label_tick_{idx}", (x, y, 0.095), (0.11, 0.018, 0.01), 1)
-    return asset
+    return finalize_asset(asset, (0.12, 0.12, 0.018))
 
 
 def build_crt_tv_asset() -> Asset:
@@ -753,7 +839,7 @@ def build_crt_tv_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_crt_texture(),
         materials=crt_materials(),
-        dimensions=(2.48, 1.86, 1.82),
+        dimensions=(0.70, 0.58, 0.56),
         manifest_extra={
             "screen_state": "black_glass",
             "front_style": "large_bezel_box_crt",
@@ -798,8 +884,15 @@ def build_crt_tv_asset() -> Asset:
     b.add_box("crt_back_cable_port", (0.0, 1.205, 0.58), (0.34, 0.026, 0.16), 1)
     for idx, (x, y) in enumerate([(-0.82, -0.50), (0.82, -0.50), (-0.76, 0.62), (0.76, 0.62)]):
         b.add_box(f"crt_rubber_foot_{idx}", (x, y, -0.02), (0.30, 0.24, 0.10), 5)
+    for row, z in enumerate([0.42, 0.54, 0.66, 0.78, 0.90, 1.02, 1.14, 1.26, 1.38]):
+        for col, x in enumerate([-1.05, -0.84, -0.63, -0.42, 0.42, 0.63, 0.84, 1.05]):
+            b.add_box(f"crt_bezel_pixel_dither_{row:02d}_{col:02d}", (x, -1.062, z), (0.080, 0.012, 0.018), 4 if (row + col) % 2 else 5)
+    for row, z in enumerate([0.48, 0.62, 0.76, 0.90, 1.04, 1.18, 1.32]):
+        for col, y in enumerate([-0.48, -0.26, -0.04, 0.18, 0.40, 0.62]):
+            b.add_box(f"crt_side_case_pixel_{row:02d}_{col:02d}_l", (-1.252, y, z), (0.018, 0.070, 0.020), 5)
+            b.add_box(f"crt_side_case_pixel_{row:02d}_{col:02d}_r", (1.252, y, z), (0.018, 0.070, 0.020), 5)
     b.add_box("col_crt_tv_box", (0.0, 0.08, 0.91), (2.48, 1.86, 1.82), 7)
-    return asset
+    return finalize_asset(asset, (0.70, 0.58, 0.56))
 
 
 def build_bookshelf_texture() -> list[tuple[int, int, int, int]]:
@@ -908,6 +1001,53 @@ def build_disc_rug_texture() -> list[tuple[int, int, int, int]]:
     return pixels
 
 
+def build_room_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 512
+    pixels = make_canvas(w, h, rgb_to_rgba((188, 213, 187)))
+    deep = hex_to_rgba(PALETTE["deep"])
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    for y in range(18, 250, 22):
+        draw_line(pixels, w, h, 8, y, 504, y + (y % 3), rgb_to_rgba((144, 166, 148)))
+    poster_colors = [
+        rgb_to_rgba((16, 34, 42)),
+        rgb_to_rgba((42, 112, 55)),
+        rgb_to_rgba((218, 238, 214)),
+        rgb_to_rgba((28, 58, 58)),
+    ]
+    poster_slots = [
+        (18, 22, 90, 104), (104, 18, 174, 94), (188, 30, 252, 118), (270, 20, 344, 104),
+        (362, 28, 444, 116), (34, 128, 112, 210), (128, 118, 190, 206), (208, 138, 280, 220),
+        (296, 126, 370, 208), (392, 138, 482, 230), (74, 236, 158, 318), (190, 246, 270, 332),
+    ]
+    for idx, (x0, y0, x1, y1) in enumerate(poster_slots):
+        draw_rect(pixels, w, h, x0, y0, x1, y1, poster_colors[idx % len(poster_colors)])
+        draw_rect(pixels, w, h, x0 + 4, y0 + 4, x1 - 4, y0 + 8, green if idx % 2 else pale)
+        draw_text(pixels, w, h, x0 + 8, y0 + 16, f"EMI {idx:02d}", pale if idx % 2 else deep, 1)
+    draw_rect(pixels, w, h, 18, 352, 204, 494, rgb_to_rgba((18, 36, 45)))
+    draw_text(pixels, w, h, 36, 374, "DESK NOTES", pale, 2)
+    draw_rect(pixels, w, h, 240, 346, 490, 494, rgb_to_rgba((16, 46, 30)))
+    for x in range(250, 486, 18):
+        draw_line(pixels, w, h, x, 356, x - 22, 488, rgb_to_rgba((70, 154, 78)))
+    return pixels
+
+
+def build_prop_texture(label: str) -> list[tuple[int, int, int, int]]:
+    w = h = 128
+    pixels = make_canvas(w, h, hex_to_rgba(PALETTE["pale"]))
+    deep = hex_to_rgba(PALETTE["deep"])
+    green = hex_to_rgba(PALETTE["green"])
+    dim_green = rgb_to_rgba((35, 86, 48))
+    draw_rect(pixels, w, h, 0, 0, 127, 18, deep)
+    draw_text(pixels, w, h, 8, 6, label[:10], green, 1)
+    draw_rect(pixels, w, h, 8, 28, 118, 102, rgb_to_rgba((198, 226, 196)))
+    for y in range(34, 100, 9):
+        draw_line(pixels, w, h, 12, y, 114, y + (y % 2), dim_green)
+    for x in range(14, 116, 18):
+        draw_rect(pixels, w, h, x, 106, x + 8, 116, green if x % 3 else deep)
+    return pixels
+
+
 def build_bookshelf_asset() -> Asset:
     asset = Asset(
         name="bookshelf",
@@ -915,7 +1055,7 @@ def build_bookshelf_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_bookshelf_texture(),
         materials=bookshelf_materials(),
-        dimensions=(2.90, 0.55, 2.40),
+        dimensions=(1.20, 0.36, 1.55),
         notes=["Large room-scale bookshelf prop, sized above the CRT while staying in the shared PSX palette."],
     )
     b = MeshBuilder(asset)
@@ -948,8 +1088,14 @@ def build_bookshelf_asset() -> Asset:
 
     for idx, x in enumerate([-1.16, -0.78, -0.40, 0.36, 0.74, 1.12]):
         b.add_box(f"bookshelf_plinth_scuff_{idx:02d}", (x, -0.286, 0.145), (0.18, 0.018, 0.028), 5)
+    for row, z in enumerate([0.56, 0.96, 1.36, 1.76, 2.16]):
+        for col, x in enumerate([-1.18, -0.92, -0.66, -0.40, -0.14, 0.14, 0.40, 0.66, 0.92, 1.18]):
+            if (row + col) % 2 == 0:
+                b.add_box(f"bookshelf_pixel_book_edge_{row:02d}_{col:02d}", (x, -0.242, z), (0.070, 0.016, 0.030), 5 if col % 3 else 2)
+    for idx, x in enumerate([-1.05, -0.75, -0.45, -0.15, 0.15, 0.45, 0.75, 1.05]):
+        b.add_box(f"bookshelf_top_label_chip_{idx:02d}", (x, -0.286, 2.365), (0.12, 0.018, 0.025), 3 if idx % 2 else 5)
     b.add_box("col_bookshelf_box", (0.0, 0.0, 1.20), (2.90, 0.55, 2.40), 6)
-    return asset
+    return finalize_asset(asset, (1.20, 0.36, 1.55))
 
 
 def build_desk_asset() -> Asset:
@@ -959,7 +1105,7 @@ def build_desk_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_desk_texture(),
         materials=desk_materials(),
-        dimensions=(3.40, 1.92, 1.05),
+        dimensions=(1.65, 0.82, 0.72),
         notes=["Large desk prop, wider and deeper than the CRT television for room-scale placement."],
     )
     b = MeshBuilder(asset)
@@ -994,8 +1140,15 @@ def build_desk_asset() -> Asset:
     b.add_cylinder_z("desk_back_cable_grommet", (0.0, 0.62, 1.065), 0.13, 0.018, 12, 3)
     b.add_box("desk_under_keyboard_tray", (0.0, -0.36, 0.71), (0.92, 0.48, 0.07), 3)
     b.add_box("desk_keyboard_tray_pull", (0.0, -0.61, 0.72), (0.44, 0.032, 0.035), 4)
+    for row, y in enumerate([-0.72, -0.54, -0.36, -0.18, 0.00, 0.18, 0.36, 0.54, 0.72]):
+        for col, x in enumerate([-1.38, -1.10, -0.82, -0.54, -0.26, 0.26, 0.54, 0.82, 1.10, 1.38]):
+            if (row + col) % 2 == 0:
+                b.add_box(f"desk_top_pixel_grain_{row:02d}_{col:02d}", (x, y, 1.066), (0.12, 0.020, 0.010), 4 if col % 3 else 5)
+    for row, z in enumerate([0.22, 0.38, 0.54, 0.70]):
+        for col, x in enumerate([-1.18, -0.88, -0.58, -0.28, 0.28, 0.58, 0.88, 1.18]):
+            b.add_box(f"desk_front_pixel_trim_{row:02d}_{col:02d}", (x, -0.822, z), (0.075, 0.018, 0.020), 5 if (row + col) % 2 else 3)
     b.add_box("col_desk_box", (0.0, 0.0, 0.525), (3.40, 1.92, 1.05), 6)
-    return asset
+    return finalize_asset(asset, (1.65, 0.82, 0.72))
 
 
 def build_beanbag_asset() -> Asset:
@@ -1005,7 +1158,7 @@ def build_beanbag_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_beanbag_texture(),
         materials=beanbag_materials(),
-        dimensions=(2.38, 2.02, 1.20),
+        dimensions=(1.10, 1.00, 0.58),
         manifest_extra={
             "seat_role": "player_sittable",
             "shape_construction": "single_sculpted_body",
@@ -1015,8 +1168,8 @@ def build_beanbag_asset() -> Asset:
         notes=["Player-sittable lazy sofa generated from a UV-sphere body with procedural sculpt deformations."],
     )
     b = MeshBuilder(asset)
-    segments = 36
-    rings = 14
+    segments = 56
+    rings = 22
     positions: list[tuple[float, float, float]] = []
     normals: list[tuple[float, float, float]] = []
     uvs: list[tuple[float, float]] = []
@@ -1080,8 +1233,8 @@ def build_beanbag_asset() -> Asset:
 
     b.add_primitive("beanbag_uv_sphere_sculpted_body", 0, positions, normals, uvs, indices)
     b.add_elliptical_cylinder_z("beanbag_center_sink", (0.0, -0.12, 0.855), 0.20, 0.16, 0.016, 24, 1)
-    for idx in range(18):
-        theta = math.tau * idx / 18.0
+    for idx in range(28):
+        theta = math.tau * idx / 28.0
         x = math.cos(theta) * 0.36
         y = -0.08 + math.sin(theta) * 0.29
         b.add_box_z_rotated(
@@ -1094,7 +1247,7 @@ def build_beanbag_asset() -> Asset:
     b.add_box("beanbag_small_side_tag", (1.10, -0.42, 0.54), (0.035, 0.18, 0.14), 4)
     b.add_box("beanbag_side_tag_mark", (1.123, -0.42, 0.55), (0.012, 0.10, 0.026), 3)
     b.add_box("col_beanbag_sit_volume", (0.0, -0.08, 0.60), (2.26, 1.88, 1.12), 5)
-    return asset
+    return finalize_asset(asset, (1.10, 1.00, 0.58))
 
 
 def build_disc_rug_asset() -> Asset:
@@ -1104,17 +1257,18 @@ def build_disc_rug_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_disc_rug_texture(),
         materials=disc_rug_materials(),
-        dimensions=(3.40, 3.40, 0.05),
+        dimensions=(1.70, 1.70, 0.035),
         manifest_extra={"surface_role": "floor_rug", "rug_style": "green_disc_rug"},
         notes=["Round floor rug inspired by game disc and vinyl silhouettes, with original X WHEEL markings."],
     )
     b = MeshBuilder(asset)
-    b.add_cylinder_z("disc_rug_outer_round_mat", (0.0, 0.0, 0.018), 1.70, 0.032, 32, 0)
-    b.add_cylinder_z("disc_rug_deep_outer_rim", (0.0, 0.0, 0.040), 1.70, 0.020, 32, 2, hole_radius=1.54)
-    b.add_cylinder_z("disc_rug_lime_inner_swirl", (0.0, 0.0, 0.052), 1.18, 0.016, 28, 1, hole_radius=0.34)
-    b.add_cylinder_z("disc_rug_center_label", (0.0, 0.0, 0.064), 0.34, 0.018, 24, 4, hole_radius=0.075)
-    b.add_cylinder_z("disc_rug_center_hole_pale", (0.0, 0.0, 0.078), 0.085, 0.014, 12, 3)
-    for idx, angle in enumerate([0.10, 0.86, 1.62, 2.38, 3.14, 3.90, 4.66, 5.42]):
+    b.add_cylinder_z("disc_rug_outer_round_mat", (0.0, 0.0, 0.018), 1.70, 0.032, 72, 0)
+    b.add_cylinder_z("disc_rug_deep_outer_rim", (0.0, 0.0, 0.040), 1.70, 0.020, 72, 2, hole_radius=1.54)
+    b.add_cylinder_z("disc_rug_lime_inner_swirl", (0.0, 0.0, 0.052), 1.18, 0.016, 72, 1, hole_radius=0.34)
+    b.add_cylinder_z("disc_rug_center_label", (0.0, 0.0, 0.064), 0.34, 0.018, 48, 4, hole_radius=0.075)
+    b.add_cylinder_z("disc_rug_center_hole_pale", (0.0, 0.0, 0.078), 0.085, 0.014, 24, 3)
+    for idx in range(20):
+        angle = 0.10 + math.tau * idx / 20.0
         radius = 0.92 + 0.18 * math.sin(idx)
         x = math.cos(angle) * 0.54
         y = math.sin(angle) * 0.54
@@ -1131,7 +1285,383 @@ def build_disc_rug_asset() -> Asset:
     b.add_box("disc_rug_small_rating_block", (-0.86, -0.48, 0.088), (0.28, 0.22, 0.012), 3)
     b.add_box("disc_rug_small_logo_block", (0.82, -0.48, 0.088), (0.30, 0.20, 0.012), 3)
     b.add_box("col_disc_rug_box", (0.0, 0.0, 0.025), (3.40, 3.40, 0.05), 5)
-    return asset
+    return finalize_asset(asset, (1.70, 1.70, 0.035))
+
+
+def build_poster_asset() -> Asset:
+    asset = Asset(
+        name="poster",
+        output_dir=ASSET_ROOT / "poster",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("POSTER"),
+        materials=prop_materials(),
+        dimensions=(0.46, 0.025, 0.58),
+        manifest_extra={"asset_role": "wall_decor"},
+        notes=["Reusable taped wall poster asset for Emi room poster clusters."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("poster_00", (0.0, 0.0, 0.30), (0.44, 0.020, 0.56), 2)
+    b.add_box("poster_top_band", (0.0, -0.014, 0.54), (0.40, 0.012, 0.040), 1)
+    b.add_box("poster_lower_band", (0.0, -0.014, 0.13), (0.34, 0.012, 0.030), 0)
+    for idx, z in enumerate([0.22, 0.29, 0.36, 0.43]):
+        b.add_box(f"poster_pixel_line_{idx:02d}", (0.0, -0.016, z), (0.28 - idx * 0.025, 0.010, 0.018), 3 if idx % 2 else 0)
+    for idx, (x, z) in enumerate([(-0.16, 0.57), (0.16, 0.57), (-0.16, 0.03), (0.16, 0.03)]):
+        b.add_box(f"poster_tape_{idx:02d}", (x, -0.020, z), (0.10, 0.014, 0.026), 2)
+    b.add_box("col_poster_box", (0.0, 0.0, 0.29), (0.46, 0.025, 0.58), 7)
+    return finalize_asset(asset, (0.46, 0.025, 0.58))
+
+
+def build_draft_paper_asset() -> Asset:
+    asset = Asset(
+        name="draft_paper",
+        output_dir=ASSET_ROOT / "draft_paper",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("DRAFT"),
+        materials=prop_materials(),
+        dimensions=(0.30, 0.22, 0.010),
+        manifest_extra={"asset_role": "desk_clutter"},
+        notes=["Reusable loose draft-paper sheet with pixel line marks."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("draft_paper_00", (0.0, 0.0, 0.006), (0.30, 0.22, 0.010), 2)
+    for idx, y in enumerate([-0.075, -0.045, -0.015, 0.015, 0.045, 0.075]):
+        b.add_box(f"draft_paper_line_{idx:02d}", (-0.015 + idx * 0.004, y, 0.014), (0.20 - idx * 0.010, 0.006, 0.004), 3 if idx % 2 else 0)
+    b.add_box("draft_paper_fold", (-0.11, 0.08, 0.016), (0.050, 0.045, 0.004), 1)
+    b.add_box("col_draft_paper_box", (0.0, 0.0, 0.005), (0.30, 0.22, 0.010), 7)
+    return finalize_asset(asset, (0.30, 0.22, 0.010))
+
+
+def build_table_lamp_asset() -> Asset:
+    asset = Asset(
+        name="table_lamp",
+        output_dir=ASSET_ROOT / "table_lamp",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("LAMP"),
+        materials=prop_materials(),
+        dimensions=(0.28, 0.22, 0.48),
+        manifest_extra={"asset_role": "desk_lighting"},
+        notes=["Desk table lamp with pixel-era shade, pull chain, and green glow accent."],
+    )
+    b = MeshBuilder(asset)
+    b.add_cylinder_z("table_lamp_base", (0.0, 0.0, 0.025), 0.105, 0.050, 24, 4)
+    b.add_cylinder_z("table_lamp_base_ring", (0.0, 0.0, 0.058), 0.118, 0.018, 24, 6, hole_radius=0.085)
+    b.add_cylinder_z("table_lamp_stem", (0.0, 0.0, 0.235), 0.020, 0.34, 12, 6)
+    b.add_box("table_lamp", (0.0, 0.0, 0.425), (0.28, 0.22, 0.13), 1)
+    b.add_box("table_lamp_shade_dark_lower", (0.0, -0.006, 0.365), (0.32, 0.25, 0.035), 0)
+    b.add_box("table_lamp_glow_strip", (0.0, -0.118, 0.395), (0.20, 0.012, 0.034), 2)
+    b.add_box("table_lamp_pull_chain", (0.13, -0.09, 0.270), (0.008, 0.008, 0.18), 2)
+    b.add_cylinder_z("table_lamp_chain_knob", (0.13, -0.09, 0.165), 0.018, 0.018, 8, 1)
+    b.add_box("col_table_lamp_box", (0.0, 0.0, 0.24), (0.32, 0.25, 0.48), 7)
+    return finalize_asset(asset, (0.28, 0.22, 0.48))
+
+
+def build_pencil_asset() -> Asset:
+    asset = Asset(
+        name="pencil",
+        output_dir=ASSET_ROOT / "pencil",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("PENCIL"),
+        materials=prop_materials(),
+        dimensions=(0.026, 0.26, 0.026),
+        manifest_extra={"asset_role": "desk_clutter"},
+        notes=["Reusable short pencil prop sized for desk clutter."],
+    )
+    b = MeshBuilder(asset)
+    b.add_cylinder_y("pencil", (0.0, 0.0, 0.013), 0.013, 0.22, 16, 1)
+    b.add_cylinder_y("pencil_tip_wood", (0.0, -0.125, 0.013), 0.013, 0.035, 12, 2)
+    b.add_cylinder_y("pencil_eraser_cap", (0.0, 0.125, 0.013), 0.014, 0.035, 12, 3)
+    b.add_box("pencil_pixel_mark", (0.0, -0.02, 0.029), (0.006, 0.10, 0.004), 0)
+    b.add_box("col_pencil_box", (0.0, 0.0, 0.013), (0.026, 0.26, 0.026), 7)
+    return finalize_asset(asset, (0.026, 0.26, 0.026))
+
+
+def build_eraser_asset() -> Asset:
+    asset = Asset(
+        name="eraser",
+        output_dir=ASSET_ROOT / "eraser",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("ERASER"),
+        materials=prop_materials(),
+        dimensions=(0.13, 0.075, 0.035),
+        manifest_extra={"asset_role": "desk_clutter"},
+        notes=["Reusable small eraser with wrapper bands."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("eraser", (0.0, 0.0, 0.018), (0.13, 0.075, 0.035), 2)
+    b.add_box("eraser_green_wrapper", (0.0, 0.0, 0.039), (0.075, 0.081, 0.010), 1)
+    b.add_box("eraser_deep_wrapper_line_a", (-0.030, 0.0, 0.046), (0.010, 0.083, 0.006), 0)
+    b.add_box("eraser_deep_wrapper_line_b", (0.030, 0.0, 0.046), (0.010, 0.083, 0.006), 0)
+    for idx, x in enumerate([-0.054, 0.054]):
+        b.add_box(f"eraser_chamfer_pixel_{idx:02d}", (x, 0.0, 0.040), (0.018, 0.065, 0.006), 3)
+    b.add_box("eraser_corner_scuff", (0.050, 0.026, 0.047), (0.024, 0.018, 0.006), 0)
+    b.add_box("col_eraser_box", (0.0, 0.0, 0.018), (0.13, 0.075, 0.035), 7)
+    return finalize_asset(asset, (0.13, 0.075, 0.035))
+
+
+def build_potted_plant_asset() -> Asset:
+    asset = Asset(
+        name="potted_plant",
+        output_dir=ASSET_ROOT / "potted_plant",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("PLANT"),
+        materials=prop_materials(),
+        dimensions=(0.32, 0.30, 0.38),
+        manifest_extra={"asset_role": "shelf_decor"},
+        notes=["Small potted plant for shelf-top decoration."],
+    )
+    b = MeshBuilder(asset)
+    b.add_cylinder_z("bookshelf_planter", (0.0, 0.0, 0.09), 0.115, 0.18, 20, 4)
+    b.add_cylinder_z("plant_pot_rim", (0.0, 0.0, 0.185), 0.130, 0.030, 20, 0, hole_radius=0.090)
+    b.add_cylinder_z("plant_soil", (0.0, 0.0, 0.205), 0.085, 0.018, 16, 0)
+    for idx in range(12):
+        angle = math.tau * idx / 12.0
+        radius = 0.055 + 0.035 * (idx % 3)
+        x = math.cos(angle) * radius
+        y = math.sin(angle) * radius
+        b.add_box_z_rotated(f"plant_leaf_{idx:02d}", (x, y, 0.285 + 0.012 * (idx % 4)), (0.035, 0.20, 0.018), angle, 1 if idx % 2 else 3)
+    b.add_box("col_potted_plant_box", (0.0, 0.0, 0.19), (0.32, 0.30, 0.38), 7)
+    return finalize_asset(asset, (0.32, 0.30, 0.38))
+
+
+def build_wheeled_lounge_chair_asset() -> Asset:
+    asset = Asset(
+        name="wheeled_lounge_chair",
+        output_dir=ASSET_ROOT / "wheeled_lounge_chair",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("CHAIR"),
+        materials=prop_materials(),
+        dimensions=(0.62, 0.58, 0.78),
+        manifest_extra={"asset_role": "player_seat"},
+        notes=["Wheeled lounge chair sized for a five-head chibi player character."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("wheeled_lounge_chair", (0.0, 0.0, 0.38), (0.55, 0.48, 0.17), 3)
+    b.add_box("chair_seat_front_roll", (0.0, -0.25, 0.42), (0.58, 0.08, 0.12), 1)
+    b.add_box_z_rotated("chair_back", (0.0, 0.19, 0.67), (0.58, 0.10, 0.45), 0.0, 3)
+    b.add_box("chair_back_top_roll", (0.0, 0.22, 0.92), (0.60, 0.10, 0.08), 1)
+    b.add_cylinder_z("chair_center_post", (0.0, 0.0, 0.21), 0.030, 0.32, 16, 6)
+    b.add_cylinder_z("chair_hub", (0.0, 0.0, 0.08), 0.085, 0.050, 20, 6)
+    for idx in range(5):
+        angle = math.tau * idx / 5.0
+        x = math.cos(angle) * 0.23
+        y = math.sin(angle) * 0.20
+        b.add_box_z_rotated(f"chair_wheel_arm_{idx:02d}", (x * 0.5, y * 0.5, 0.08), (0.045, 0.30, 0.040), angle - math.pi / 2, 6)
+        b.add_cylinder_y(f"chair_wheel_{idx:02d}", (x, y, 0.045), 0.045, 0.030, 12, 0)
+    for idx, x in enumerate([-0.18, -0.06, 0.06, 0.18]):
+        b.add_box(f"chair_back_stitch_{idx:02d}", (x, 0.135, 0.70), (0.014, 0.010, 0.30), 2)
+    b.add_box("col_wheeled_lounge_chair_box", (0.0, 0.0, 0.39), (0.62, 0.58, 0.78), 7)
+    return finalize_asset(asset, (0.62, 0.58, 0.78))
+
+
+def build_floor_book_asset() -> Asset:
+    asset = Asset(
+        name="floor_book",
+        output_dir=ASSET_ROOT / "floor_book",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("BOOK"),
+        materials=prop_materials(),
+        dimensions=(0.22, 0.30, 0.045),
+        manifest_extra={"asset_role": "floor_clutter"},
+        notes=["Reusable fallen book asset for room floor clutter."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("floor_book_00", (0.0, 0.0, 0.023), (0.22, 0.30, 0.045), 1)
+    b.add_box("floor_book_pages_00", (0.016, 0.0, 0.051), (0.18, 0.25, 0.010), 2)
+    b.add_box("floor_book_spine", (-0.105, 0.0, 0.055), (0.020, 0.30, 0.014), 0)
+    for idx, y in enumerate([-0.10, -0.04, 0.02, 0.08]):
+        b.add_box(f"floor_book_page_line_{idx:02d}", (0.026, y, 0.060), (0.13, 0.006, 0.004), 3)
+    b.add_box("col_floor_book_box", (0.0, 0.0, 0.023), (0.22, 0.30, 0.045), 7)
+    return finalize_asset(asset, (0.22, 0.30, 0.045))
+
+
+def build_cd_case_asset() -> Asset:
+    asset = Asset(
+        name="cd_case",
+        output_dir=ASSET_ROOT / "cd_case",
+        texture_size=(128, 128),
+        texture_pixels=build_prop_texture("CD CASE"),
+        materials=prop_materials(),
+        dimensions=(0.20, 0.20, 0.022),
+        manifest_extra={"asset_role": "floor_clutter"},
+        notes=["Reusable translucent CD case for room floor clutter."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("floor_cd_case_00", (0.0, 0.0, 0.011), (0.20, 0.20, 0.022), 5)
+    b.add_box("floor_cd_case_deep_spine", (-0.090, 0.0, 0.026), (0.018, 0.19, 0.010), 0)
+    b.add_box("floor_cd_label", (0.020, 0.0, 0.030), (0.11, 0.040, 0.006), 2)
+    b.add_cylinder_z("floor_cd_case_disc_hint", (0.020, 0.0, 0.034), 0.045, 0.005, 20, 1, hole_radius=0.010)
+    b.add_box("col_cd_case_box", (0.0, 0.0, 0.011), (0.20, 0.20, 0.022), 7)
+    return finalize_asset(asset, (0.20, 0.20, 0.022))
+
+
+def copy_materials_with_prefix(materials: list[Material], prefix: str) -> list[Material]:
+    return [Material(f"{prefix}_{material.name}", material.color, material.roughness, material.metallic, material.alpha_mode) for material in materials]
+
+
+def transform_primitive_for_room(
+    primitive: Primitive,
+    prefix: str,
+    material_offset: int,
+    translation: tuple[float, float, float],
+    scale: float = 1.0,
+    rotation_z: float = 0.0,
+) -> Primitive:
+    tx, ty, tz = translation
+    cos_a = math.cos(rotation_z)
+    sin_a = math.sin(rotation_z)
+
+    def transform_position(point: tuple[float, float, float]) -> tuple[float, float, float]:
+        x, y, z = point
+        xr = cos_a * x * scale - sin_a * y * scale
+        yr = sin_a * x * scale + cos_a * y * scale
+        return (xr + tx, yr + ty, z * scale + tz)
+
+    def transform_normal(normal: tuple[float, float, float]) -> tuple[float, float, float]:
+        x, y, z = normal
+        return (cos_a * x - sin_a * y, sin_a * x + cos_a * y, z)
+
+    return Primitive(
+        name=f"{prefix}_{primitive.name}",
+        material_index=primitive.material_index + material_offset,
+        positions=[transform_position(point) for point in primitive.positions],
+        normals=[transform_normal(normal) for normal in primitive.normals],
+        uvs=list(primitive.uvs),
+        colors=list(primitive.colors),
+        indices=list(primitive.indices),
+    )
+
+
+def add_asset_instance_to_room(
+    room: Asset,
+    source: Asset,
+    prefix: str,
+    translation: tuple[float, float, float],
+    scale: float = 1.0,
+    rotation_z: float = 0.0,
+) -> None:
+    material_offset = len(room.materials)
+    room.materials.extend(copy_materials_with_prefix(source.materials, prefix))
+    room.primitives.extend(
+        transform_primitive_for_room(primitive, prefix, material_offset, translation, scale, rotation_z)
+        for primitive in source.export_primitives
+    )
+
+
+def build_emi_room_asset(
+    console: Asset,
+    disc: Asset,
+    crt: Asset,
+    bookshelf: Asset,
+    desk: Asset,
+    rug: Asset,
+    poster: Asset,
+    draft_paper: Asset,
+    table_lamp: Asset,
+    pencil: Asset,
+    eraser: Asset,
+    potted_plant: Asset,
+    wheeled_lounge_chair: Asset,
+    floor_book: Asset,
+    cd_case: Asset,
+) -> Asset:
+    asset = Asset(
+        name="emi_room",
+        output_dir=ASSET_ROOT / "emi_room",
+        texture_size=(512, 512),
+        texture_pixels=build_room_texture(),
+        materials=room_materials(),
+        dimensions=(4.20, 3.20, 2.60),
+        manifest_extra={
+            "scene_role": "character_room",
+            "room_owner": "emi",
+            "poster_count": 14,
+            "disc_count_on_desk": 3,
+            "floor_book_count": 6,
+            "floor_cd_case_count": 5,
+            "included_assets": [
+                "bookshelf",
+                "desk",
+                "crt_tv",
+                "psx_dvr_console",
+                "psx_dvr_disc",
+                "disc_rug",
+                "poster",
+                "draft_paper",
+                "table_lamp",
+                "pencil",
+                "eraser",
+                "potted_plant",
+                "wheeled_lounge_chair",
+                "floor_book",
+                "cd_case",
+            ],
+        },
+        notes=["Complete low-poly room scene for Emi, composed from prior assets plus original room clutter."],
+    )
+    b = MeshBuilder(asset)
+    b.add_box("emi_room_floor", (0.0, 0.0, -0.025), (4.20, 3.20, 0.05), 1)
+    b.add_box("emi_room_back_wall", (0.0, 1.58, 1.30), (4.20, 0.07, 2.60), 0)
+    b.add_box("emi_room_left_wall", (-2.10, 0.02, 1.30), (0.07, 3.12, 2.60), 0)
+    b.add_box("emi_room_right_wall", (2.10, 0.02, 1.30), (0.07, 3.12, 2.60), 0)
+    b.add_box("emi_room_back_baseboard", (0.0, 1.535, 0.11), (4.16, 0.08, 0.12), 2)
+    b.add_box("emi_room_left_baseboard", (-2.045, 0.02, 0.11), (0.08, 3.08, 0.12), 2)
+    b.add_box("emi_room_right_baseboard", (2.045, 0.02, 0.11), (0.08, 3.08, 0.12), 2)
+    for row, z in enumerate([0.42, 0.58, 0.74, 0.90, 1.06, 1.22, 1.38, 1.54, 1.70, 1.86, 2.02, 2.18]):
+        for col, x in enumerate([-1.90, -1.62, -1.34, -1.06, -0.78, -0.50, -0.22, 0.06, 0.34, 0.62, 0.90, 1.18, 1.46, 1.74]):
+            if (row + col) % 2 == 0:
+                b.add_box(
+                    f"emi_room_wall_pixel_patch_{row:02d}_{col:02d}",
+                    (x, 1.522, z),
+                    (0.10, 0.012, 0.020),
+                    5 if (row + col) % 4 else 2,
+                )
+    for row, y in enumerate([-1.28, -1.04, -0.80, -0.56, -0.32, -0.08, 0.16, 0.40, 0.64, 0.88, 1.12]):
+        for col, x in enumerate([-1.78, -1.46, -1.14, -0.82, -0.50, -0.18, 0.14, 0.46, 0.78, 1.10, 1.42, 1.74]):
+            if True:
+                b.add_box(
+                    f"emi_room_floor_pixel_wear_{row:02d}_{col:02d}",
+                    (x, y, 0.006),
+                    (0.12, 0.030, 0.008),
+                    2 if col % 2 else 4,
+                )
+
+    poster_specs = [
+        (-1.72, 1.520, 1.88, 0.94), (-1.18, 1.518, 1.90, 0.84),
+        (-0.66, 1.516, 1.86, 0.98), (-0.14, 1.520, 1.92, 0.88),
+        (0.42, 1.518, 1.88, 0.96), (0.96, 1.516, 1.93, 0.86),
+        (1.50, 1.520, 1.86, 0.92), (-1.66, 1.518, 1.20, 0.80),
+        (-1.12, 1.516, 1.16, 0.90), (-0.56, 1.520, 1.24, 0.78),
+        (0.04, 1.518, 1.18, 0.92), (0.66, 1.516, 1.22, 0.82),
+        (1.20, 1.520, 1.16, 0.90), (1.68, 1.518, 1.26, 0.76),
+    ]
+    for x, y, z, scale in poster_specs:
+        add_asset_instance_to_room(asset, poster, "emi_room", (x, y, z), scale, 0.0)
+
+    add_asset_instance_to_room(asset, desk, "emi_room_desk", (-0.05, 0.84, 0.0), 1.0, 0.0)
+    b.add_box("emi_room_desk_cluster", (-0.05, 0.43, 0.035), (1.82, 0.62, 0.030), 14)
+    add_asset_instance_to_room(asset, bookshelf, "emi_room_bookshelf", (-1.48, 0.86, 0.0), 1.0, 0.0)
+    add_asset_instance_to_room(asset, crt, "emi_room_crt_tv", (-0.42, 0.76, 0.72), 1.0, 0.0)
+    add_asset_instance_to_room(asset, console, "emi_room_game_console", (0.42, 0.64, 0.72), 1.0, 0.0)
+    for x, y, rot in [(0.30, 0.34, 0.20), (0.52, 0.35, -0.35), (0.72, 0.37, 0.55)]:
+        add_asset_instance_to_room(asset, disc, "emi_room_desk_disc", (x, y, 0.735), 1.0, rot)
+    add_asset_instance_to_room(asset, rug, "emi_room_disc_rug", (-0.70, -0.70, 0.0), 1.0, 0.0)
+    add_asset_instance_to_room(asset, table_lamp, "emi_room", (-0.76, 0.48, 0.72), 1.0, 0.0)
+    add_asset_instance_to_room(asset, potted_plant, "emi_room", (-1.55, 0.86, 1.55), 1.0, 0.0)
+    add_asset_instance_to_room(asset, wheeled_lounge_chair, "emi_room", (-0.72, -0.68, 0.0), 1.0, 0.0)
+
+    for x, y, rot in [(-0.18, 0.36, 0.10), (0.02, 0.30, -0.25), (0.18, 0.40, 0.35)]:
+        add_asset_instance_to_room(asset, pencil, "emi_room", (x, y, 0.725), 1.0, rot)
+    add_asset_instance_to_room(asset, eraser, "emi_room", (0.30, 0.46, 0.725), 1.0, 0.0)
+    for x, y, rot in [(-0.42, 0.36, 0.10), (-0.22, 0.24, -0.12), (0.02, 0.22, 0.18), (0.24, 0.25, -0.28)]:
+        add_asset_instance_to_room(asset, draft_paper, "emi_room", (x, y, 0.724), 1.0, rot)
+
+    for x, y, rot in [(-0.50, 0.08, 0.20), (-0.22, -0.12, -0.35), (0.28, -0.08, 0.55), (0.52, -0.26, -0.15), (0.78, 0.05, 0.35), (0.96, -0.20, -0.45)]:
+        add_asset_instance_to_room(asset, floor_book, "emi_room", (x, y, 0.0), 1.0, rot)
+    for x, y, rot in [(-0.88, -0.16, 0.05), (-0.66, -0.42, 0.40), (-0.06, -0.48, -0.30), (0.36, -0.60, 0.18), (0.98, -0.54, -0.62)]:
+        add_asset_instance_to_room(asset, cd_case, "emi_room", (x, y, 0.0), 1.0, rot)
+
+    b.add_box("col_emi_room_box", (0.0, 0.0, 1.30), (4.20, 3.20, 2.60), 14)
+    return finalize_asset(asset, (4.20, 3.20, 2.60))
 
 
 def pack_floats(values: list[float]) -> bytes:
@@ -1426,10 +1956,65 @@ def generate_assets() -> list[Asset]:
     desk = build_desk_asset()
     beanbag = build_beanbag_asset()
     rug = build_disc_rug_asset()
-    assets = [console, disc, crt, bookshelf, desk, beanbag, rug]
+    poster = build_poster_asset()
+    draft_paper = build_draft_paper_asset()
+    table_lamp = build_table_lamp_asset()
+    pencil = build_pencil_asset()
+    eraser = build_eraser_asset()
+    potted_plant = build_potted_plant_asset()
+    wheeled_lounge_chair = build_wheeled_lounge_chair_asset()
+    floor_book = build_floor_book_asset()
+    cd_case = build_cd_case_asset()
+    emi_room = build_emi_room_asset(
+        console,
+        disc,
+        crt,
+        bookshelf,
+        desk,
+        rug,
+        poster,
+        draft_paper,
+        table_lamp,
+        pencil,
+        eraser,
+        potted_plant,
+        wheeled_lounge_chair,
+        floor_book,
+        cd_case,
+    )
+    assets = [
+        console,
+        disc,
+        crt,
+        bookshelf,
+        desk,
+        beanbag,
+        rug,
+        poster,
+        draft_paper,
+        table_lamp,
+        pencil,
+        eraser,
+        potted_plant,
+        wheeled_lounge_chair,
+        floor_book,
+        cd_case,
+        emi_room,
+    ]
     manifest = {
         "generator": "tools/create_psx_dvr_assets.py",
         "source_note": "GLB geometry is generated reproducibly by script. Blender imports each object as an individual asset.",
+        "scale_reference": {
+            "character": SCALE_REFERENCE,
+            "character_height_m": 1.40,
+            "head_count": 5,
+            "desk_height_m": 0.72,
+        },
+        "style": {
+            "detail_level": DETAIL_LEVEL,
+            "color_policy": COLOR_POLICY,
+            "reference": "chunky low-poly forms with denser pixel details and preserved green/pale/deep palette",
+        },
         "palette": {
             "primary": PALETTE_PRIMARY,
             "usage": {
@@ -1512,6 +2097,16 @@ def verify_outputs() -> None:
         ASSET_ROOT / "desk" / "desk.glb",
         ASSET_ROOT / "beanbag_chair" / "beanbag_chair.glb",
         ASSET_ROOT / "disc_rug" / "disc_rug.glb",
+        ASSET_ROOT / "poster" / "poster.glb",
+        ASSET_ROOT / "draft_paper" / "draft_paper.glb",
+        ASSET_ROOT / "table_lamp" / "table_lamp.glb",
+        ASSET_ROOT / "pencil" / "pencil.glb",
+        ASSET_ROOT / "eraser" / "eraser.glb",
+        ASSET_ROOT / "potted_plant" / "potted_plant.glb",
+        ASSET_ROOT / "wheeled_lounge_chair" / "wheeled_lounge_chair.glb",
+        ASSET_ROOT / "floor_book" / "floor_book.glb",
+        ASSET_ROOT / "cd_case" / "cd_case.glb",
+        ASSET_ROOT / "emi_room" / "emi_room.glb",
     ]
     for path in expected:
         print(verify_glb(path))
@@ -1521,6 +2116,10 @@ def report_outputs() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     if manifest.get("palette", {}).get("primary") != PALETTE_PRIMARY:
         raise ValueError(f"palette mismatch: {manifest.get('palette')}")
+    if manifest.get("scale_reference", {}).get("character") != SCALE_REFERENCE:
+        raise ValueError(f"scale reference mismatch: {manifest.get('scale_reference')}")
+    if manifest.get("style", {}).get("detail_level") != DETAIL_LEVEL:
+        raise ValueError(f"detail level mismatch: {manifest.get('style')}")
     console = manifest["assets"]["psx_dvr_console"]
     disc = manifest["assets"]["psx_dvr_disc"]
     crt = manifest["assets"]["crt_tv"]
@@ -1528,17 +2127,32 @@ def report_outputs() -> None:
     desk = manifest["assets"]["desk"]
     beanbag = manifest["assets"]["beanbag_chair"]
     rug = manifest["assets"]["disc_rug"]
+    room = manifest["assets"]["emi_room"]
+    small_props = {
+        "poster": "wall_decor",
+        "draft_paper": "desk_clutter",
+        "table_lamp": "desk_lighting",
+        "pencil": "desk_clutter",
+        "eraser": "desk_clutter",
+        "potted_plant": "shelf_decor",
+        "wheeled_lounge_chair": "player_seat",
+        "floor_book": "floor_clutter",
+        "cd_case": "floor_clutter",
+    }
     if "psx_dvr_crt_set" in manifest["assets"]:
         raise ValueError("psx_dvr_crt_set should not be generated")
-    if not (900 <= console["triangles"] <= 1800):
+    for asset_name, asset in manifest["assets"].items():
+        if asset.get("scale_reference") != SCALE_REFERENCE:
+            raise ValueError(f"{asset_name} scale reference mismatch: {asset.get('scale_reference')}")
+    if not (1800 <= console["triangles"] <= 4200):
         raise ValueError(f"psx_dvr_console triangle count outside budget: {console['triangles']}")
     if console["texture_size"] != [256, 256]:
         raise ValueError(f"psx_dvr_console texture size mismatch: {console['texture_size']}")
-    if not (200 <= disc["triangles"] <= 700):
+    if not (700 <= disc["triangles"] <= 1800):
         raise ValueError(f"psx_dvr_disc triangle count outside budget: {disc['triangles']}")
     if disc["texture_size"] != [128, 128]:
         raise ValueError(f"psx_dvr_disc texture size mismatch: {disc['texture_size']}")
-    if not (900 <= crt["triangles"] <= 2200):
+    if not (2200 <= crt["triangles"] <= 5200):
         raise ValueError(f"crt_tv triangle count outside budget: {crt['triangles']}")
     if crt["texture_size"] != [256, 256]:
         raise ValueError(f"crt_tv texture size mismatch: {crt['texture_size']}")
@@ -1551,11 +2165,11 @@ def report_outputs() -> None:
     if crt.get("control_layout") != "bottom_button_row":
         raise ValueError(f"crt_tv control layout mismatch: {crt.get('control_layout')}")
     for asset_name, room_asset in (("bookshelf", bookshelf), ("desk", desk)):
-        if not (900 <= room_asset["triangles"] <= 1800):
+        if not (1800 <= room_asset["triangles"] <= 5200):
             raise ValueError(f"{asset_name} triangle count outside budget: {room_asset['triangles']}")
         if room_asset["texture_size"] != [256, 256]:
             raise ValueError(f"{asset_name} texture size mismatch: {room_asset['texture_size']}")
-    if not (900 <= beanbag["triangles"] <= 2200):
+    if not (2200 <= beanbag["triangles"] <= 5600):
         raise ValueError(f"beanbag_chair triangle count outside budget: {beanbag['triangles']}")
     if beanbag["texture_size"] != [256, 256]:
         raise ValueError(f"beanbag_chair texture size mismatch: {beanbag['texture_size']}")
@@ -1567,7 +2181,7 @@ def report_outputs() -> None:
         raise ValueError(f"beanbag_chair sculpt base mismatch: {beanbag.get('sculpt_base')}")
     if beanbag.get("fabric_style") != "sculpted_green_velour":
         raise ValueError(f"beanbag_chair fabric style mismatch: {beanbag.get('fabric_style')}")
-    if not (250 <= rug["triangles"] <= 1200):
+    if not (1200 <= rug["triangles"] <= 3200):
         raise ValueError(f"disc_rug triangle count outside budget: {rug['triangles']}")
     if rug["texture_size"] != [256, 256]:
         raise ValueError(f"disc_rug texture size mismatch: {rug['texture_size']}")
@@ -1575,17 +2189,37 @@ def report_outputs() -> None:
         raise ValueError(f"disc_rug surface role mismatch: {rug.get('surface_role')}")
     if rug.get("rug_style") != "green_disc_rug":
         raise ValueError(f"disc_rug style mismatch: {rug.get('rug_style')}")
+    for asset_name, asset_role in small_props.items():
+        prop = manifest["assets"].get(asset_name)
+        if not prop:
+            raise ValueError(f"{asset_name} was not generated")
+        if prop.get("asset_role") != asset_role:
+            raise ValueError(f"{asset_name} role mismatch: {prop.get('asset_role')}")
+        if not (80 <= prop["triangles"] <= 1800):
+            raise ValueError(f"{asset_name} triangle count outside budget: {prop['triangles']}")
+    if not (22000 <= room["triangles"] <= 62000):
+        raise ValueError(f"emi_room triangle count outside budget: {room['triangles']}")
+    if room["texture_size"] != [512, 512]:
+        raise ValueError(f"emi_room texture size mismatch: {room['texture_size']}")
+    if room.get("scene_role") != "character_room":
+        raise ValueError(f"emi_room scene role mismatch: {room.get('scene_role')}")
+    if not (10 <= room.get("poster_count", 0) <= 15):
+        raise ValueError(f"emi_room poster count mismatch: {room.get('poster_count')}")
+    if room.get("disc_count_on_desk") != 3:
+        raise ValueError(f"emi_room disc count mismatch: {room.get('disc_count_on_desk')}")
     if not (bookshelf["dimensions"][2] > crt["dimensions"][2] and bookshelf["dimensions"][0] > crt["dimensions"][0]):
         raise ValueError("bookshelf must be larger than crt_tv in width and height")
     if not (desk["dimensions"][0] > crt["dimensions"][0] and desk["dimensions"][1] > crt["dimensions"][1]):
         raise ValueError("desk must be larger than crt_tv in width and depth")
-    print("psx_dvr_console: triangles between 900 and 1800, texture 256x256")
-    print("psx_dvr_disc: triangles between 200 and 700, texture 128x128")
-    print("crt_tv: large-bezel box CRT with convex black glass, triangles between 900 and 2200, texture 256x256")
-    print("bookshelf: larger than CRT, triangles between 900 and 1800, texture 256x256")
-    print("desk: larger than CRT, triangles between 900 and 1800, texture 256x256")
-    print("beanbag_chair: player-sittable sculpted sofa, triangles between 900 and 2200, texture 256x256")
-    print("disc_rug: green disc-style floor rug, triangles between 250 and 1200, texture 256x256")
+    print("psx_dvr_console: higher-detail five-head scale asset, texture 256x256")
+    print("psx_dvr_disc: higher-detail five-head scale asset, texture 128x128")
+    print("crt_tv: large-bezel box CRT with convex black glass, higher-detail texture 256x256")
+    print("bookshelf: five-head scale room furniture, texture 256x256")
+    print("desk: five-head scale room furniture, texture 256x256")
+    print("beanbag_chair: player-sittable sculpted sofa, higher-detail texture 256x256")
+    print("disc_rug: green disc-style floor rug, higher-detail texture 256x256")
+    print("room clutter: poster, draft_paper, table_lamp, pencil, eraser, potted_plant, wheeled_lounge_chair, floor_book, cd_case")
+    print("emi_room: character room scene, higher-detail five-head scale, texture 512x512")
 
 
 def main() -> None:

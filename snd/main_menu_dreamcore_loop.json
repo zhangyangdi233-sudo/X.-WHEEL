@@ -1,0 +1,33 @@
+{
+  "title": "X. WHEEL - Main Menu Dreamcore Loop",
+  "version": "prototype-02",
+  "role": "main menu",
+  "duration_seconds": 64.0,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 2822400,
+    "mode": "forward"
+  },
+  "melody_role": "green cursor title motif",
+  "style_tags": [
+    "psychedelic",
+    "dreamcore",
+    "denpa",
+    "lo-fi",
+    "y2k"
+  ],
+  "production_notes": [
+    "Original procedural synthesis; no samples copied from the reference OST.",
+    "Version 2 raises the title motif above the pad while keeping the menu low-pressure."
+  ],
+  "reference_mood": [
+    "menu music.mp3",
+    "room ambience.mp3",
+    "night ambience.mp3",
+    "thinking....mp3",
+    "omnipresent.mp3"
+  ]
+}

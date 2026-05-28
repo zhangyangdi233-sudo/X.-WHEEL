@@ -1,0 +1,31 @@
+{
+  "title": "X. WHEEL - Soft Orbit",
+  "version": "prototype-02",
+  "role": "switchable chapter bgm",
+  "track_id": "soft_orbit",
+  "mood": "active-choice-groove",
+  "duration_seconds": 96.0,
+  "sample_rate": 44100,
+  "channels": 2,
+  "format": "16-bit PCM WAV",
+  "loop": {
+    "start_sample": 0,
+    "end_sample": 4233600,
+    "mode": "forward"
+  },
+  "style_tags": [
+    "dream_pop",
+    "slap_bass",
+    "melody_led",
+    "light_noise",
+    "lo-fi"
+  ],
+  "noise_amount": "light",
+  "bass_articulation": "slap",
+  "hard_transients": "removed",
+  "melody_role": "lead-forward",
+  "production_notes": [
+    "Original procedural synthesis for player-switchable chapter listening.",
+    "Prototype 02 softens hard transient clicks and pushes the lead melody/harmony forward."
+  ]
+}

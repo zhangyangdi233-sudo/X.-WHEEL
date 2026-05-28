@@ -16,8 +16,12 @@
 *.translation text eol=lf
 *.svg text eol=lf
 *.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
 
 # Binary assets
+*.blend binary
+*.glb binary
 *.otf binary
 *.ttf binary
 *.png binary
