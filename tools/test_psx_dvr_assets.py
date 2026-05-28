@@ -31,9 +31,15 @@ class PsxDvrAssetsTest(unittest.TestCase):
         crt = self.assets["crt_tv"]
         self.assertEqual(crt["texture_size"], [256, 256])
         self.assertEqual(crt["screen_state"], "black_glass")
+        self.assertEqual(crt["front_style"], "large_bezel_box_crt")
+        self.assertEqual(crt["screen_material"], "convex_black_glass")
+        self.assertEqual(crt["control_layout"], "bottom_button_row")
         self.assertGreaterEqual(crt["triangles"], 900)
-        self.assertLessEqual(crt["triangles"], 1800)
+        self.assertLessEqual(crt["triangles"], 2200)
         self.assertGreater(crt["dimensions"][0], self.assets["psx_dvr_console"]["dimensions"][0] * 0.6)
+        self.assertIn("crt_bottom_button_00", crt["source_parts"])
+        self.assertIn("crt_large_black_glass_panel", crt["source_parts"])
+        self.assertIn("crt_boxy_side_depth", crt["source_parts"])
         self.assertTrue((ROOT / crt["glb"]).exists())
         self.assertTrue((ROOT / crt["texture"]).exists())
         self.assertTrue((ROOT / crt["preview"]).exists())
@@ -61,6 +67,41 @@ class PsxDvrAssetsTest(unittest.TestCase):
             self.assertTrue((ROOT / asset["glb"]).exists())
             self.assertTrue((ROOT / asset["texture"]).exists())
             self.assertTrue((ROOT / asset["preview"]).exists())
+
+    def test_beanbag_chair_is_player_sittable_room_asset(self):
+        self.assertIn("beanbag_chair", self.assets)
+        beanbag = self.assets["beanbag_chair"]
+        self.assertEqual(beanbag["seat_role"], "player_sittable")
+        self.assertEqual(beanbag["shape_construction"], "single_sculpted_body")
+        self.assertEqual(beanbag["fabric_style"], "sculpted_green_velour")
+        self.assertEqual(beanbag["texture_size"], [256, 256])
+        self.assertGreaterEqual(beanbag["triangles"], 900)
+        self.assertLessEqual(beanbag["triangles"], 2200)
+        self.assertGreater(beanbag["dimensions"][0], self.assets["crt_tv"]["dimensions"][0] * 0.75)
+        self.assertGreater(beanbag["dimensions"][1], self.assets["crt_tv"]["dimensions"][1] * 0.75)
+        self.assertIn("beanbag_sculpted_body", beanbag["source_parts"])
+        self.assertIn("beanbag_center_sink", beanbag["source_parts"])
+        self.assertNotIn("beanbag_left_arm_cushion", beanbag["source_parts"])
+        self.assertNotIn("beanbag_back_cushion", beanbag["source_parts"])
+        self.assertTrue((ROOT / beanbag["glb"]).exists())
+        self.assertTrue((ROOT / beanbag["texture"]).exists())
+        self.assertTrue((ROOT / beanbag["preview"]).exists())
+
+    def test_disc_rug_is_generated_as_round_floor_asset(self):
+        self.assertIn("disc_rug", self.assets)
+        rug = self.assets["disc_rug"]
+        self.assertEqual(rug["surface_role"], "floor_rug")
+        self.assertEqual(rug["rug_style"], "green_disc_rug")
+        self.assertEqual(rug["texture_size"], [256, 256])
+        self.assertGreaterEqual(rug["triangles"], 250)
+        self.assertLessEqual(rug["triangles"], 1200)
+        self.assertGreater(rug["dimensions"][0], self.assets["beanbag_chair"]["dimensions"][0])
+        self.assertLessEqual(rug["dimensions"][2], 0.08)
+        self.assertIn("disc_rug_outer_round_mat", rug["source_parts"])
+        self.assertIn("disc_rug_center_label", rug["source_parts"])
+        self.assertTrue((ROOT / rug["glb"]).exists())
+        self.assertTrue((ROOT / rug["texture"]).exists())
+        self.assertTrue((ROOT / rug["preview"]).exists())
 
 
 if __name__ == "__main__":

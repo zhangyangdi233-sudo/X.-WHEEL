@@ -6,7 +6,9 @@
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\psx_dvr_disc\\psx_dvr_disc.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\crt_tv\\crt_tv.glb",
     "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\bookshelf\\bookshelf.glb",
-    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\desk\\desk.glb"
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\desk\\desk.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\beanbag_chair\\beanbag_chair.glb",
+    "D:\\\u6e38\u620f\u5236\u4f5c\\X. WHEEL\\assets\\3d\\disc_rug\\disc_rug.glb"
   ],
   "collections": {
     "psx_dvr_console": [
@@ -23,15 +25,23 @@
     ],
     "desk": [
       "desk"
+    ],
+    "beanbag_chair": [
+      "beanbag_chair"
+    ],
+    "disc_rug": [
+      "disc_rug"
     ]
   },
-  "mesh_object_count": 5,
-  "material_count": 33,
+  "mesh_object_count": 7,
+  "material_count": 42,
   "image_count": 2,
   "asset_marked_objects": [
+    "beanbag_chair",
     "bookshelf",
     "crt_tv",
     "desk",
+    "disc_rug",
     "psx_dvr_console",
     "psx_dvr_disc"
   ]

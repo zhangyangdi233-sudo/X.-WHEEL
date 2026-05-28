@@ -15,6 +15,8 @@ DISC_GLB = ROOT / "assets" / "3d" / "psx_dvr_disc" / "psx_dvr_disc.glb"
 CRT_GLB = ROOT / "assets" / "3d" / "crt_tv" / "crt_tv.glb"
 BOOKSHELF_GLB = ROOT / "assets" / "3d" / "bookshelf" / "bookshelf.glb"
 DESK_GLB = ROOT / "assets" / "3d" / "desk" / "desk.glb"
+BEANBAG_GLB = ROOT / "assets" / "3d" / "beanbag_chair" / "beanbag_chair.glb"
+RUG_GLB = ROOT / "assets" / "3d" / "disc_rug" / "disc_rug.glb"
 OUTPUT_BLEND = ROOT / "assets" / "3d" / "psx_dvr_assets.blend"
 REPORT_PATH = ROOT / "assets" / "3d" / "psx_dvr_blender_import_report.json"
 
@@ -80,9 +82,9 @@ def make_scene_usable() -> None:
     camera_data = bpy.data.cameras.new("cam_psx_dvr_asset_preview")
     camera = bpy.data.objects.new("cam_psx_dvr_asset_preview", camera_data)
     bpy.context.scene.collection.objects.link(camera)
-    camera.location = (5.2, -8.2, 4.6)
-    camera.rotation_euler = (1.06, 0.0, 0.60)
-    camera.data.lens = 34
+    camera.location = (7.4, -10.2, 5.2)
+    camera.rotation_euler = (1.05, 0.0, 0.62)
+    camera.data.lens = 32
     bpy.context.scene.camera = camera
 
     light_data = bpy.data.lights.new("key_area_light", "AREA")
@@ -111,18 +113,22 @@ def collect_report(
     crt_objects: list[bpy.types.Object],
     bookshelf_objects: list[bpy.types.Object],
     desk_objects: list[bpy.types.Object],
+    beanbag_objects: list[bpy.types.Object],
+    rug_objects: list[bpy.types.Object],
 ) -> dict:
     mesh_objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     return {
         "addon_module": addon_module,
         "blend": str(OUTPUT_BLEND),
-        "source_glbs": [str(CONSOLE_GLB), str(DISC_GLB), str(CRT_GLB), str(BOOKSHELF_GLB), str(DESK_GLB)],
+        "source_glbs": [str(CONSOLE_GLB), str(DISC_GLB), str(CRT_GLB), str(BOOKSHELF_GLB), str(DESK_GLB), str(BEANBAG_GLB), str(RUG_GLB)],
         "collections": {
             "psx_dvr_console": [obj.name for obj in console_objects],
             "psx_dvr_disc": [obj.name for obj in disc_objects],
             "crt_tv": [obj.name for obj in crt_objects],
             "bookshelf": [obj.name for obj in bookshelf_objects],
             "desk": [obj.name for obj in desk_objects],
+            "beanbag_chair": [obj.name for obj in beanbag_objects],
+            "disc_rug": [obj.name for obj in rug_objects],
         },
         "mesh_object_count": len(mesh_objects),
         "material_count": len(bpy.data.materials),
@@ -139,12 +145,14 @@ def main() -> None:
     crt_objects = import_glb(CRT_GLB, "crt_tv", -0.7)
     bookshelf_objects = import_glb(BOOKSHELF_GLB, "bookshelf", 2.0)
     desk_objects = import_glb(DESK_GLB, "desk", 5.0)
+    beanbag_objects = import_glb(BEANBAG_GLB, "beanbag_chair", 7.8)
+    rug_objects = import_glb(RUG_GLB, "disc_rug", 10.2)
     make_scene_usable()
 
     OUTPUT_BLEND.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT_BLEND))
 
-    report = collect_report(addon_module, console_objects, disc_objects, crt_objects, bookshelf_objects, desk_objects)
+    report = collect_report(addon_module, console_objects, disc_objects, crt_objects, bookshelf_objects, desk_objects, beanbag_objects, rug_objects)
     REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
 

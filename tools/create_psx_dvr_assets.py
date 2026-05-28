@@ -329,6 +329,32 @@ class MeshBuilder:
             indices.extend((base, base + 1, base + 2, base, base + 2, base + 3))
         self.add_primitive(name, material_index, positions, normals, uvs, indices)
 
+    def add_box_z_rotated(
+        self,
+        name: str,
+        center: tuple[float, float, float],
+        size: tuple[float, float, float],
+        angle: float,
+        material_index: int,
+        uv_rect: tuple[float, float, float, float] = (0.02, 0.02, 0.18, 0.18),
+    ) -> None:
+        temp_asset = Asset("_temp", Path("."), (1, 1), [(255, 255, 255, 255)], self.asset.materials)
+        temp_builder = MeshBuilder(temp_asset)
+        temp_builder.add_box(name, (0.0, 0.0, 0.0), size, material_index, uv_rect)
+        primitive = temp_asset.primitives[0]
+        cx, cy, cz = center
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
+        rotated_positions = [
+            (cx + cos_a * x - sin_a * y, cy + sin_a * x + cos_a * y, cz + z)
+            for x, y, z in primitive.positions
+        ]
+        rotated_normals = [
+            (cos_a * x - sin_a * y, sin_a * x + cos_a * y, z)
+            for x, y, z in primitive.normals
+        ]
+        self.add_primitive(name, material_index, rotated_positions, rotated_normals, primitive.uvs, primitive.indices)
+
     def add_cylinder_z(
         self,
         name: str,
@@ -437,6 +463,31 @@ class MeshBuilder:
 
         self.add_primitive(name, material_index, positions, normals, uvs, indices)
 
+    def add_elliptical_cylinder_z(
+        self,
+        name: str,
+        center: tuple[float, float, float],
+        radius_x: float,
+        radius_y: float,
+        depth: float,
+        sides: int,
+        material_index: int,
+        hole_radius: float = 0.0,
+    ) -> None:
+        temp_asset = Asset("_temp", Path("."), (1, 1), [(255, 255, 255, 255)], self.asset.materials)
+        temp_builder = MeshBuilder(temp_asset)
+        temp_builder.add_cylinder_z(name, (0.0, 0.0, 0.0), 1.0, depth, sides, material_index, hole_radius)
+        primitive = temp_asset.primitives[0]
+        cx, cy, cz = center
+        scaled_positions = [(cx + x * radius_x, cy + y * radius_y, cz + z) for x, y, z in primitive.positions]
+        scaled_normals = []
+        for nx, ny, nz in primitive.normals:
+            sx = nx / max(radius_x, 0.001)
+            sy = ny / max(radius_y, 0.001)
+            length = math.sqrt(sx * sx + sy * sy + nz * nz) or 1.0
+            scaled_normals.append((sx / length, sy / length, nz / length))
+        self.add_primitive(name, material_index, scaled_positions, scaled_normals, primitive.uvs, primitive.indices)
+
     def add_cylinder_y(
         self,
         name: str,
@@ -482,8 +533,8 @@ def disc_materials() -> list[Material]:
 
 def crt_materials() -> list[Material]:
     return [
-        Material("mat_crt_deep_shell", hex_to_float_color(PALETTE["deep"])),
-        Material("mat_crt_deep_edge", (0.025, 0.055, 0.095, 1.0)),
+        Material("mat_crt_deep_shell", (0.035, 0.075, 0.110, 1.0)),
+        Material("mat_crt_deep_edge", (0.018, 0.040, 0.065, 1.0)),
         Material("mat_crt_black_glass", (0.006, 0.014, 0.024, 1.0), roughness=0.24, metallic=0.08),
         Material("mat_crt_glass_scanline", (0.025, 0.13, 0.075, 1.0), roughness=0.35),
         Material("mat_crt_panel_green_dark", (0.13, 0.35, 0.20, 1.0)),
@@ -513,6 +564,28 @@ def desk_materials() -> list[Material]:
         Material("mat_desk_recess", (0.015, 0.035, 0.055, 1.0)),
         Material("mat_desk_pale_edge", (0.74, 0.88, 0.75, 1.0)),
         Material("mat_desk_dim_green", (0.12, 0.32, 0.18, 1.0)),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def beanbag_materials() -> list[Material]:
+    return [
+        Material("mat_beanbag_green_fabric", (0.18, 0.44, 0.22, 1.0), roughness=0.98),
+        Material("mat_beanbag_dark_fabric_shadow", (0.08, 0.19, 0.12, 1.0), roughness=1.0),
+        Material("mat_beanbag_rib_highlight", (0.35, 0.62, 0.36, 1.0), roughness=0.96),
+        Material("mat_beanbag_deep_seam", hex_to_float_color(PALETTE["deep"]), roughness=0.95),
+        Material("mat_beanbag_pale_stitch", hex_to_float_color(PALETTE["pale"]), roughness=0.9),
+        Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
+    ]
+
+
+def disc_rug_materials() -> list[Material]:
+    return [
+        Material("mat_rug_green_swirl", (0.12, 0.47, 0.25, 1.0), roughness=1.0),
+        Material("mat_rug_lime_swirl", hex_to_float_color(PALETTE["green"]), roughness=1.0),
+        Material("mat_rug_deep_rim", hex_to_float_color(PALETTE["deep"]), roughness=0.95),
+        Material("mat_rug_pale_print", hex_to_float_color(PALETTE["pale"]), roughness=0.98),
+        Material("mat_rug_center_label", (0.030, 0.035, 0.040, 1.0), roughness=0.9),
         Material("mat_collision_proxy", (0.15, 0.7, 0.95, 0.12), alpha_mode="BLEND"),
     ]
 
@@ -579,27 +652,24 @@ def build_crt_texture() -> list[tuple[int, int, int, int]]:
     pale = hex_to_rgba(PALETTE["pale"])
     green = hex_to_rgba(PALETTE["green"])
     dark = rgb_to_rgba((5, 14, 24))
-    mid = rgb_to_rgba((16, 50, 42))
     glass = rgb_to_rgba((2, 7, 12))
     glass_edge = rgb_to_rgba((7, 20, 31))
-    draw_rect(pixels, w, h, 8, 8, 146, 112, glass)
-    draw_rect(pixels, w, h, 12, 12, 142, 108, glass_edge)
-    draw_rect(pixels, w, h, 18, 18, 136, 102, glass)
-    for y in range(24, 100, 9):
-        draw_line(pixels, w, h, 20, y, 134, y + 1, rgb_to_rgba((13, 53, 36)))
-    draw_line(pixels, w, h, 22, 28, 112, 18, rgb_to_rgba((126, 188, 132)))
-    draw_line(pixels, w, h, 30, 38, 82, 32, rgb_to_rgba((45, 118, 70)))
-    draw_rect(pixels, w, h, 158, 8, 244, 112, mid)
-    draw_text(pixels, w, h, 171, 24, "CRT", pale, 2)
-    draw_text(pixels, w, h, 170, 50, "XW-03", green, 1)
-    for y in range(76, 104, 9):
-        draw_line(pixels, w, h, 168, y, 232, y, green)
-    draw_rect(pixels, w, h, 8, 128, 246, 158, dark)
-    for x in range(18, 238, 16):
-        draw_rect(pixels, w, h, x, 134, x + 5, 152, green)
-    draw_rect(pixels, w, h, 8, 174, 246, 246, rgb_to_rgba((8, 25, 38)))
-    for x, y in ((28, 194), (68, 220), (174, 199), (216, 228)):
-        draw_rect(pixels, w, h, x, y, x + 24, y + 4, rgb_to_rgba((34, 88, 50)))
+    face = rgb_to_rgba((17, 36, 54))
+    draw_rect(pixels, w, h, 8, 8, 248, 168, face)
+    draw_rect(pixels, w, h, 28, 24, 178, 118, glass_edge)
+    draw_rect(pixels, w, h, 36, 32, 170, 110, glass)
+    for y in range(42, 104, 11):
+        draw_line(pixels, w, h, 42, y, 164, y + 1, rgb_to_rgba((12, 68, 43)))
+    draw_line(pixels, w, h, 52, 44, 154, 36, rgb_to_rgba((118, 184, 126)))
+    draw_line(pixels, w, h, 58, 58, 118, 54, rgb_to_rgba((186, 226, 190)))
+    draw_line(pixels, w, h, 52, 74, 86, 72, rgb_to_rgba((160, 214, 166)))
+    draw_rect(pixels, w, h, 8, 176, 248, 224, dark)
+    draw_text(pixels, w, h, 112, 184, "XW", pale, 1)
+    for x in range(72, 158, 11):
+        draw_rect(pixels, w, h, x, 204, x + 4, 218, rgb_to_rgba((35, 54, 56)))
+    for x in (24, 68, 190, 226):
+        draw_rect(pixels, w, h, x, 188, x + 20, 192, green)
+    draw_rect(pixels, w, h, 16, 232, 240, 246, rgb_to_rgba((8, 22, 34)))
     return pixels
 
 
@@ -683,40 +753,52 @@ def build_crt_tv_asset() -> Asset:
         texture_size=(256, 256),
         texture_pixels=build_crt_texture(),
         materials=crt_materials(),
-        dimensions=(2.34, 1.70, 1.56),
-        manifest_extra={"screen_state": "black_glass"},
-        notes=["CRT television prop with black glass screen using the shared #3FA943/#E8F8E4/#0C1725 palette."],
+        dimensions=(2.48, 1.86, 1.82),
+        manifest_extra={
+            "screen_state": "black_glass",
+            "front_style": "large_bezel_box_crt",
+            "screen_material": "convex_black_glass",
+            "control_layout": "bottom_button_row",
+        },
+        notes=["Large-bezel box CRT television with dominant convex black glass screen and bottom button row."],
     )
     b = MeshBuilder(asset)
-    b.add_box("crt_main_shell", (0.0, 0.0, 0.78), (2.22, 1.54, 1.36), 0)
-    b.add_box("crt_bottom_shadow", (0.0, 0.0, 0.08), (2.34, 1.62, 0.16), 1)
-    b.add_box("crt_rear_tube_hump", (0.0, 0.62, 0.82), (1.58, 0.82, 1.04), 1)
-    b.add_box("crt_front_bezel", (-0.28, -0.805, 0.85), (1.42, 0.08, 0.96), 1)
-    b.add_box("crt_screen_glass", (-0.32, -0.856, 0.86), (1.08, 0.045, 0.70), 2)
-    b.add_box("crt_screen_reflection_long", (-0.48, -0.884, 1.08), (0.44, 0.018, 0.035), 6)
-    b.add_box("crt_screen_reflection_short", (-0.64, -0.886, 0.98), (0.20, 0.016, 0.026), 6)
-    for idx, z in enumerate([0.58, 0.70, 0.82, 0.94, 1.06, 1.18]):
-        b.add_box(f"crt_scanline_{idx:02d}", (-0.32, -0.898, z), (0.96, 0.012, 0.018), 3)
-    b.add_box("crt_control_panel", (0.74, -0.852, 0.86), (0.44, 0.065, 0.84), 4)
-    b.add_cylinder_y("crt_channel_knob", (0.74, -0.905, 1.07), 0.18, 0.09, 14, 5)
-    b.add_cylinder_y("crt_volume_knob", (0.74, -0.905, 0.74), 0.14, 0.08, 12, 5)
-    b.add_box("crt_power_light", (0.98, -0.898, 0.48), (0.08, 0.025, 0.08), 3)
-    for row, z in enumerate([0.55, 0.66, 0.77, 0.88, 0.99, 1.10]):
-        for col, x in enumerate([0.52, 0.62, 0.86, 0.96]):
-            b.add_cylinder_y(f"crt_speaker_hole_{row:02d}_{col:02d}", (x, -0.902, z), 0.028, 0.045, 8, 5)
-    for idx, x in enumerate([-0.86, -0.58, -0.30, -0.02, 0.26, 0.54, 0.82]):
-        b.add_box(f"crt_top_vent_{idx:02d}", (x, 0.02, 1.475), (0.07, 0.58, 0.035), 5)
-    for idx, z in enumerate([0.44, 0.58, 0.72, 0.86, 1.00, 1.14]):
-        b.add_box(f"crt_left_side_vent_{idx:02d}", (-1.13, 0.16, z), (0.04, 0.46, 0.055), 5)
-        b.add_box(f"crt_right_side_vent_{idx:02d}", (1.13, 0.16, z), (0.04, 0.46, 0.055), 5)
-    b.add_box("crt_back_panel", (0.0, 1.048, 0.86), (1.22, 0.055, 0.72), 5)
-    b.add_box("crt_back_warning_label", (0.0, 1.082, 1.04), (0.52, 0.025, 0.18), 4)
-    b.add_box("crt_back_cable_port", (0.0, 1.086, 0.58), (0.34, 0.026, 0.16), 1)
-    for idx, (x, y) in enumerate([(-0.78, -0.46), (0.78, -0.46), (-0.72, 0.54), (0.72, 0.54)]):
-        b.add_box(f"crt_rubber_foot_{idx}", (x, y, -0.02), (0.28, 0.22, 0.10), 5)
-    for idx, x in enumerate([-0.88, -0.48, -0.08, 0.32]):
-        b.add_box(f"crt_pixel_scuff_{idx}", (x, -0.902, 0.32), (0.16, 0.014, 0.018), 4)
-    b.add_box("col_crt_tv_box", (0.0, 0.05, 0.78), (2.34, 1.70, 1.56), 7)
+    b.add_box("crt_boxy_side_depth", (0.0, 0.12, 0.90), (2.42, 1.76, 1.62), 0)
+    b.add_box("crt_rear_tube_block", (0.0, 0.76, 0.92), (1.86, 0.86, 1.30), 1)
+    b.add_box("crt_heavy_bottom_plinth", (0.0, -0.02, 0.13), (2.48, 1.86, 0.26), 1)
+    b.add_box("crt_front_deep_bezel_outer", (0.0, -0.835, 1.02), (2.18, 0.18, 1.42), 1)
+    b.add_box("crt_front_bezel_face", (0.0, -0.940, 1.02), (1.96, 0.10, 1.20), 0)
+    b.add_box("crt_screen_shadow_cavity", (-0.04, -1.010, 1.12), (1.54, 0.075, 0.90), 5)
+    b.add_box("crt_large_black_glass_panel", (-0.04, -1.060, 1.12), (1.38, 0.052, 0.78), 2)
+    b.add_box("crt_glass_left_curved_edge", (-0.76, -1.045, 1.12), (0.08, 0.038, 0.72), 2)
+    b.add_box("crt_glass_right_curved_edge", (0.68, -1.045, 1.12), (0.08, 0.038, 0.72), 2)
+    b.add_box("crt_glass_top_curved_edge", (-0.04, -1.040, 1.53), (1.26, 0.035, 0.07), 2)
+    b.add_box("crt_glass_bottom_curved_edge", (-0.04, -1.040, 0.71), (1.26, 0.035, 0.07), 2)
+    b.add_box("crt_glass_reflection_top", (-0.36, -1.086, 1.43), (0.60, 0.014, 0.028), 6)
+    b.add_box("crt_glass_reflection_mid", (-0.50, -1.088, 1.24), (0.34, 0.014, 0.025), 6)
+    for idx, z in enumerate([0.80, 0.92, 1.04, 1.16, 1.28, 1.40]):
+        b.add_box(f"crt_glass_dark_scanline_{idx:02d}", (-0.04, -1.092, z), (1.24, 0.010, 0.014), 3)
+    b.add_box("crt_bottom_control_strip", (0.0, -1.005, 0.42), (2.04, 0.070, 0.20), 5)
+    b.add_box("crt_center_brand_plate", (0.0, -1.048, 0.50), (0.34, 0.020, 0.030), 4)
+    for idx, x in enumerate([-0.52, -0.40, -0.28, -0.16, -0.04, 0.08, 0.20, 0.32]):
+        b.add_box(f"crt_bottom_button_{idx:02d}", (x, -1.050, 0.36), (0.046, 0.032, 0.085), 5)
+    b.add_box("crt_power_button_square", (0.82, -1.050, 0.37), (0.14, 0.032, 0.09), 5)
+    b.add_box("crt_power_indicator_green", (1.02, -1.052, 0.46), (0.06, 0.020, 0.045), 3)
+    for idx, x in enumerate([-0.98, -0.64, 0.64, 0.98]):
+        b.add_box(f"crt_front_lower_accent_{idx:02d}", (x, -1.053, 0.27), (0.18, 0.016, 0.024), 4)
+    for row, z in enumerate([0.56, 0.66, 0.76]):
+        for col, x in enumerate([0.72, 0.86, 1.00]):
+            b.add_cylinder_y(f"crt_bottom_speaker_hole_{row:02d}_{col:02d}", (x, -1.052, z), 0.024, 0.040, 8, 5)
+    for idx, x in enumerate([-0.92, -0.64, -0.36, -0.08, 0.20, 0.48, 0.76, 1.04]):
+        b.add_box(f"crt_top_case_tab_{idx:02d}", (x, -0.06, 1.735), (0.08, 0.22, 0.035), 5)
+    for idx, z in enumerate([0.46, 0.58, 0.70, 0.82, 0.94, 1.06, 1.18]):
+        b.add_box(f"crt_left_side_vent_{idx:02d}", (-1.235, 0.18, z), (0.035, 0.50, 0.045), 5)
+        b.add_box(f"crt_right_side_vent_{idx:02d}", (1.235, 0.18, z), (0.035, 0.50, 0.045), 5)
+    b.add_box("crt_back_service_panel", (0.0, 1.170, 0.94), (1.34, 0.055, 0.76), 5)
+    b.add_box("crt_back_cable_port", (0.0, 1.205, 0.58), (0.34, 0.026, 0.16), 1)
+    for idx, (x, y) in enumerate([(-0.82, -0.50), (0.82, -0.50), (-0.76, 0.62), (0.76, 0.62)]):
+        b.add_box(f"crt_rubber_foot_{idx}", (x, y, -0.02), (0.30, 0.24, 0.10), 5)
+    b.add_box("col_crt_tv_box", (0.0, 0.08, 0.91), (2.48, 1.86, 1.82), 7)
     return asset
 
 
@@ -758,6 +840,71 @@ def build_desk_texture() -> list[tuple[int, int, int, int]]:
             draw_rect(pixels, w, h, x0, y0, x0 + 84, y0 + 24, green)
             draw_rect(pixels, w, h, x0 + 20, y0 + 10, x0 + 64, y0 + 13, pale)
     draw_text(pixels, w, h, 88, 226, "DESK", green, 2)
+    return pixels
+
+
+def build_beanbag_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 256
+    pixels = make_canvas(w, h, rgb_to_rgba((28, 78, 38)))
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    deep = hex_to_rgba(PALETTE["deep"])
+    dark_green = rgb_to_rgba((17, 52, 26))
+    for y in range(h):
+        for x in range(w):
+            wave = math.sin(x * 0.10 + y * 0.035) + math.sin((x - y) * 0.045)
+            if wave > 1.35:
+                pixels[y * w + x] = rgb_to_rgba((54, 112, 54))
+            elif wave < -1.35:
+                pixels[y * w + x] = dark_green
+    for angle in range(0, 360, 18):
+        rad = math.radians(angle)
+        x0 = 128 + int(math.cos(rad) * 14)
+        y0 = 128 + int(math.sin(rad) * 10)
+        x1 = 128 + int(math.cos(rad) * 110)
+        y1 = 128 + int(math.sin(rad) * 86)
+        draw_line(pixels, w, h, x0, y0, x1, y1, rgb_to_rgba((66, 130, 62)))
+    draw_rect(pixels, w, h, 184, 190, 232, 232, deep)
+    draw_text(pixels, w, h, 190, 204, "SIT", green, 1)
+    draw_text(pixels, w, h, 34, 34, "SOFT", pale, 2)
+    return pixels
+
+
+def build_disc_rug_texture() -> list[tuple[int, int, int, int]]:
+    w = h = 256
+    pixels = make_canvas(w, h, rgb_to_rgba((0, 0, 0), 0))
+    cx = cy = 128
+    deep = hex_to_rgba(PALETTE["deep"])
+    pale = hex_to_rgba(PALETTE["pale"])
+    green = hex_to_rgba(PALETTE["green"])
+    for y in range(h):
+        for x in range(w):
+            dx = x - cx
+            dy = y - cy
+            radius = math.sqrt(dx * dx + dy * dy)
+            angle = math.atan2(dy, dx)
+            if radius > 124:
+                continue
+            if radius > 116:
+                pixels[y * w + x] = deep
+            elif radius < 23:
+                pixels[y * w + x] = rgb_to_rgba((20, 25, 24))
+            elif radius < 30:
+                pixels[y * w + x] = pale
+            else:
+                swirl = math.sin(angle * 5.0 + radius * 0.055) + math.sin((x + y) * 0.028)
+                if swirl > 0.85:
+                    pixels[y * w + x] = rgb_to_rgba((63, 188, 74))
+                elif swirl < -0.80:
+                    pixels[y * w + x] = rgb_to_rgba((12, 74, 44))
+                else:
+                    pixels[y * w + x] = rgb_to_rgba((28, 138, 62))
+    draw_text(pixels, w, h, 88, 42, "X WHEEL", pale, 1)
+    draw_text(pixels, w, h, 78, 205, "DISC RUG", pale, 2)
+    draw_rect(pixels, w, h, 72, 142, 116, 164, deep)
+    draw_text(pixels, w, h, 80, 149, "XW", green, 1)
+    draw_rect(pixels, w, h, 142, 142, 184, 164, pale)
+    draw_text(pixels, w, h, 150, 149, "03", deep, 1)
     return pixels
 
 
@@ -848,6 +995,144 @@ def build_desk_asset() -> Asset:
     b.add_box("desk_under_keyboard_tray", (0.0, -0.36, 0.71), (0.92, 0.48, 0.07), 3)
     b.add_box("desk_keyboard_tray_pull", (0.0, -0.61, 0.72), (0.44, 0.032, 0.035), 4)
     b.add_box("col_desk_box", (0.0, 0.0, 0.525), (3.40, 1.92, 1.05), 6)
+    return asset
+
+
+def build_beanbag_asset() -> Asset:
+    asset = Asset(
+        name="beanbag_chair",
+        output_dir=ASSET_ROOT / "beanbag_chair",
+        texture_size=(256, 256),
+        texture_pixels=build_beanbag_texture(),
+        materials=beanbag_materials(),
+        dimensions=(2.38, 2.02, 1.20),
+        manifest_extra={
+            "seat_role": "player_sittable",
+            "shape_construction": "single_sculpted_body",
+            "fabric_style": "sculpted_green_velour",
+        },
+        notes=["Player-sittable lazy sofa generated as a single sculpted cushion body with a central sink."],
+    )
+    b = MeshBuilder(asset)
+    segments = 40
+    top_rings = [0.16, 0.30, 0.44, 0.58, 0.72, 0.86, 0.98, 1.08]
+    side_levels = [(0.86, 1.10), (0.68, 1.12), (0.50, 1.08), (0.32, 1.02), (0.18, 0.92)]
+    positions: list[tuple[float, float, float]] = [(0.0, -0.12, 0.56)]
+    normals: list[tuple[float, float, float]] = [(0.0, 0.0, 1.0)]
+    uvs: list[tuple[float, float]] = [(0.5, 0.5)]
+    indices: list[int] = []
+
+    def beanbag_point(theta: float, radius: float, z_override: float | None = None, scale_override: float | None = None) -> tuple[float, float, float]:
+        rib = 1.0 + 0.025 * math.sin(theta * 18.0)
+        lopsided = 1.0 + 0.045 * math.sin(theta * 2.0 + 0.7)
+        scale = scale_override if scale_override is not None else radius
+        x = math.cos(theta) * 1.10 * scale * rib
+        y = -0.08 + math.sin(theta) * 0.91 * scale * lopsided
+        if z_override is not None:
+            z = z_override
+        else:
+            rim_lift = 0.43 * (radius**1.55)
+            sink = 0.12 * math.exp(-((radius - 0.34) ** 2) / 0.030)
+            folds = 0.018 * math.sin(theta * 12.0 + radius * 5.0) * radius
+            z = 0.56 + rim_lift - sink + folds
+        return (x, y, z)
+
+    ring_indices: list[list[int]] = []
+    for radius in top_rings:
+        ring: list[int] = []
+        for idx in range(segments):
+            theta = math.tau * idx / segments
+            point = beanbag_point(theta, radius)
+            positions.append(point)
+            normals.append((0.0, 0.0, 1.0))
+            uvs.append((0.5 + math.cos(theta) * radius * 0.44, 0.5 + math.sin(theta) * radius * 0.44))
+            ring.append(len(positions) - 1)
+        ring_indices.append(ring)
+
+    first_ring = ring_indices[0]
+    for idx in range(segments):
+        indices.extend((0, first_ring[(idx + 1) % segments], first_ring[idx]))
+    for ring_idx in range(len(ring_indices) - 1):
+        inner = ring_indices[ring_idx]
+        outer = ring_indices[ring_idx + 1]
+        for idx in range(segments):
+            a = inner[idx]
+            b2 = inner[(idx + 1) % segments]
+            c = outer[(idx + 1) % segments]
+            d = outer[idx]
+            indices.extend((a, b2, c, a, c, d))
+
+    previous = ring_indices[-1]
+    for level, (z, scale) in enumerate(side_levels):
+        ring = []
+        for idx in range(segments):
+            theta = math.tau * idx / segments
+            point = beanbag_point(theta, 1.08, z_override=z, scale_override=scale)
+            positions.append(point)
+            normals.append((math.cos(theta), math.sin(theta), 0.15))
+            uvs.append((idx / segments, 0.15 + level * 0.12))
+            ring.append(len(positions) - 1)
+        for idx in range(segments):
+            a = previous[idx]
+            b2 = previous[(idx + 1) % segments]
+            c = ring[(idx + 1) % segments]
+            d = ring[idx]
+            indices.extend((a, b2, c, a, c, d))
+        previous = ring
+
+    b.add_primitive("beanbag_sculpted_body", 0, positions, normals, uvs, indices)
+    b.add_elliptical_cylinder_z("beanbag_center_sink", (0.0, -0.12, 0.575), 0.25, 0.20, 0.016, 24, 0)
+    for idx in range(16):
+        theta = math.tau * idx / 16.0
+        x = math.cos(theta) * 0.42
+        y = -0.08 + math.sin(theta) * 0.34
+        b.add_box_z_rotated(
+            f"beanbag_soft_radial_fold_{idx:02d}",
+            (x, y, 0.80 + 0.07 * math.sin(theta + 0.3)),
+            (0.018, 0.54, 0.018),
+            theta - math.pi / 2,
+            2,
+        )
+    b.add_box("beanbag_small_side_tag", (1.10, -0.42, 0.54), (0.035, 0.18, 0.14), 4)
+    b.add_box("beanbag_side_tag_mark", (1.123, -0.42, 0.55), (0.012, 0.10, 0.026), 3)
+    b.add_box("col_beanbag_sit_volume", (0.0, -0.08, 0.60), (2.26, 1.88, 1.12), 5)
+    return asset
+
+
+def build_disc_rug_asset() -> Asset:
+    asset = Asset(
+        name="disc_rug",
+        output_dir=ASSET_ROOT / "disc_rug",
+        texture_size=(256, 256),
+        texture_pixels=build_disc_rug_texture(),
+        materials=disc_rug_materials(),
+        dimensions=(3.40, 3.40, 0.05),
+        manifest_extra={"surface_role": "floor_rug", "rug_style": "green_disc_rug"},
+        notes=["Round floor rug inspired by game disc and vinyl silhouettes, with original X WHEEL markings."],
+    )
+    b = MeshBuilder(asset)
+    b.add_cylinder_z("disc_rug_outer_round_mat", (0.0, 0.0, 0.018), 1.70, 0.032, 32, 0)
+    b.add_cylinder_z("disc_rug_deep_outer_rim", (0.0, 0.0, 0.040), 1.70, 0.020, 32, 2, hole_radius=1.54)
+    b.add_cylinder_z("disc_rug_lime_inner_swirl", (0.0, 0.0, 0.052), 1.18, 0.016, 28, 1, hole_radius=0.34)
+    b.add_cylinder_z("disc_rug_center_label", (0.0, 0.0, 0.064), 0.34, 0.018, 24, 4, hole_radius=0.075)
+    b.add_cylinder_z("disc_rug_center_hole_pale", (0.0, 0.0, 0.078), 0.085, 0.014, 12, 3)
+    for idx, angle in enumerate([0.10, 0.86, 1.62, 2.38, 3.14, 3.90, 4.66, 5.42]):
+        radius = 0.92 + 0.18 * math.sin(idx)
+        x = math.cos(angle) * 0.54
+        y = math.sin(angle) * 0.54
+        b.add_box_z_rotated(
+            f"disc_rug_swirl_streak_{idx:02d}",
+            (x, y, 0.080),
+            (0.055, radius, 0.012),
+            angle - math.pi / 2,
+            1 if idx % 2 else 0,
+        )
+    b.add_box("disc_rug_lower_title_block", (0.0, -1.18, 0.086), (1.10, 0.16, 0.012), 2)
+    b.add_box("disc_rug_lower_title_text_a", (-0.24, -1.18, 0.096), (0.36, 0.030, 0.010), 3)
+    b.add_box("disc_rug_lower_title_text_b", (0.28, -1.18, 0.096), (0.42, 0.030, 0.010), 3)
+    b.add_box("disc_rug_small_rating_block", (-0.86, -0.48, 0.088), (0.28, 0.22, 0.012), 3)
+    b.add_box("disc_rug_small_logo_block", (0.82, -0.48, 0.088), (0.30, 0.20, 0.012), 3)
+    b.add_box("col_disc_rug_box", (0.0, 0.0, 0.025), (3.40, 3.40, 0.05), 5)
     return asset
 
 
@@ -1141,15 +1426,17 @@ def generate_assets() -> list[Asset]:
     crt = build_crt_tv_asset()
     bookshelf = build_bookshelf_asset()
     desk = build_desk_asset()
-    assets = [console, disc, crt, bookshelf, desk]
+    beanbag = build_beanbag_asset()
+    rug = build_disc_rug_asset()
+    assets = [console, disc, crt, bookshelf, desk, beanbag, rug]
     manifest = {
         "generator": "tools/create_psx_dvr_assets.py",
         "source_note": "GLB geometry is generated reproducibly by script. Blender imports each object as an individual asset.",
         "palette": {
             "primary": PALETTE_PRIMARY,
             "usage": {
-                "#3FA943": "status lights, labels, book spines, drawer fronts, and accents",
-                "#E8F8E4": "pale plastic highlights, shelf boards, desktop, and disc center",
+                "#3FA943": "status lights, labels, book spines, drawer fronts, green fabric, rug swirls, and accents",
+                "#E8F8E4": "pale plastic highlights, shelf boards, desktop, stitches, rug print, and disc center",
                 "#0C1725": "deep shell, recesses, ports, and shadows",
             },
         },
@@ -1225,6 +1512,8 @@ def verify_outputs() -> None:
         ASSET_ROOT / "crt_tv" / "crt_tv.glb",
         ASSET_ROOT / "bookshelf" / "bookshelf.glb",
         ASSET_ROOT / "desk" / "desk.glb",
+        ASSET_ROOT / "beanbag_chair" / "beanbag_chair.glb",
+        ASSET_ROOT / "disc_rug" / "disc_rug.glb",
     ]
     for path in expected:
         print(verify_glb(path))
@@ -1239,6 +1528,8 @@ def report_outputs() -> None:
     crt = manifest["assets"]["crt_tv"]
     bookshelf = manifest["assets"]["bookshelf"]
     desk = manifest["assets"]["desk"]
+    beanbag = manifest["assets"]["beanbag_chair"]
+    rug = manifest["assets"]["disc_rug"]
     if "psx_dvr_crt_set" in manifest["assets"]:
         raise ValueError("psx_dvr_crt_set should not be generated")
     if not (900 <= console["triangles"] <= 1800):
@@ -1249,26 +1540,52 @@ def report_outputs() -> None:
         raise ValueError(f"psx_dvr_disc triangle count outside budget: {disc['triangles']}")
     if disc["texture_size"] != [128, 128]:
         raise ValueError(f"psx_dvr_disc texture size mismatch: {disc['texture_size']}")
-    if not (900 <= crt["triangles"] <= 1800):
+    if not (900 <= crt["triangles"] <= 2200):
         raise ValueError(f"crt_tv triangle count outside budget: {crt['triangles']}")
     if crt["texture_size"] != [256, 256]:
         raise ValueError(f"crt_tv texture size mismatch: {crt['texture_size']}")
     if crt.get("screen_state") != "black_glass":
         raise ValueError(f"crt_tv screen state mismatch: {crt.get('screen_state')}")
+    if crt.get("front_style") != "large_bezel_box_crt":
+        raise ValueError(f"crt_tv front style mismatch: {crt.get('front_style')}")
+    if crt.get("screen_material") != "convex_black_glass":
+        raise ValueError(f"crt_tv screen material mismatch: {crt.get('screen_material')}")
+    if crt.get("control_layout") != "bottom_button_row":
+        raise ValueError(f"crt_tv control layout mismatch: {crt.get('control_layout')}")
     for asset_name, room_asset in (("bookshelf", bookshelf), ("desk", desk)):
         if not (900 <= room_asset["triangles"] <= 1800):
             raise ValueError(f"{asset_name} triangle count outside budget: {room_asset['triangles']}")
         if room_asset["texture_size"] != [256, 256]:
             raise ValueError(f"{asset_name} texture size mismatch: {room_asset['texture_size']}")
+    if not (900 <= beanbag["triangles"] <= 2200):
+        raise ValueError(f"beanbag_chair triangle count outside budget: {beanbag['triangles']}")
+    if beanbag["texture_size"] != [256, 256]:
+        raise ValueError(f"beanbag_chair texture size mismatch: {beanbag['texture_size']}")
+    if beanbag.get("seat_role") != "player_sittable":
+        raise ValueError(f"beanbag_chair seat role mismatch: {beanbag.get('seat_role')}")
+    if beanbag.get("shape_construction") != "single_sculpted_body":
+        raise ValueError(f"beanbag_chair shape construction mismatch: {beanbag.get('shape_construction')}")
+    if beanbag.get("fabric_style") != "sculpted_green_velour":
+        raise ValueError(f"beanbag_chair fabric style mismatch: {beanbag.get('fabric_style')}")
+    if not (250 <= rug["triangles"] <= 1200):
+        raise ValueError(f"disc_rug triangle count outside budget: {rug['triangles']}")
+    if rug["texture_size"] != [256, 256]:
+        raise ValueError(f"disc_rug texture size mismatch: {rug['texture_size']}")
+    if rug.get("surface_role") != "floor_rug":
+        raise ValueError(f"disc_rug surface role mismatch: {rug.get('surface_role')}")
+    if rug.get("rug_style") != "green_disc_rug":
+        raise ValueError(f"disc_rug style mismatch: {rug.get('rug_style')}")
     if not (bookshelf["dimensions"][2] > crt["dimensions"][2] and bookshelf["dimensions"][0] > crt["dimensions"][0]):
         raise ValueError("bookshelf must be larger than crt_tv in width and height")
     if not (desk["dimensions"][0] > crt["dimensions"][0] and desk["dimensions"][1] > crt["dimensions"][1]):
         raise ValueError("desk must be larger than crt_tv in width and depth")
     print("psx_dvr_console: triangles between 900 and 1800, texture 256x256")
     print("psx_dvr_disc: triangles between 200 and 700, texture 128x128")
-    print("crt_tv: black glass screen, triangles between 900 and 1800, texture 256x256")
+    print("crt_tv: large-bezel box CRT with convex black glass, triangles between 900 and 2200, texture 256x256")
     print("bookshelf: larger than CRT, triangles between 900 and 1800, texture 256x256")
     print("desk: larger than CRT, triangles between 900 and 1800, texture 256x256")
+    print("beanbag_chair: player-sittable sculpted sofa, triangles between 900 and 2200, texture 256x256")
+    print("disc_rug: green disc-style floor rug, triangles between 250 and 1200, texture 256x256")
 
 
 def main() -> None:

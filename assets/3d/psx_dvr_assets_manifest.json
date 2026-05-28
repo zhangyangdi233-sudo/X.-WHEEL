@@ -8,8 +8,8 @@
       "#0C1725"
     ],
     "usage": {
-      "#3FA943": "status lights, labels, book spines, drawer fronts, and accents",
-      "#E8F8E4": "pale plastic highlights, shelf boards, desktop, and disc center",
+      "#3FA943": "status lights, labels, book spines, drawer fronts, green fabric, rug swirls, and accents",
+      "#E8F8E4": "pale plastic highlights, shelf boards, desktop, stitches, rug print, and disc center",
       "#0C1725": "deep shell, recesses, ports, and shadows"
     }
   },
@@ -156,69 +156,73 @@
       "glb": "assets/3d/crt_tv/crt_tv.glb",
       "texture": "assets/3d/crt_tv/crt_tv_texture.png",
       "preview": "assets/3d/crt_tv/crt_tv_preview.png",
-      "triangles": 1412,
+      "triangles": 1044,
       "materials": 8,
       "texture_size": [
         256,
         256
       ],
       "dimensions": [
-        2.34,
-        1.7,
-        1.56
+        2.48,
+        1.86,
+        1.82
       ],
       "objects": [
         "crt_tv"
       ],
       "source_parts": [
-        "crt_main_shell",
-        "crt_bottom_shadow",
-        "crt_rear_tube_hump",
-        "crt_front_bezel",
-        "crt_screen_glass",
-        "crt_screen_reflection_long",
-        "crt_screen_reflection_short",
-        "crt_scanline_00",
-        "crt_scanline_01",
-        "crt_scanline_02",
-        "crt_scanline_03",
-        "crt_scanline_04",
-        "crt_scanline_05",
-        "crt_control_panel",
-        "crt_channel_knob",
-        "crt_volume_knob",
-        "crt_power_light",
-        "crt_speaker_hole_00_00",
-        "crt_speaker_hole_00_01",
-        "crt_speaker_hole_00_02",
-        "crt_speaker_hole_00_03",
-        "crt_speaker_hole_01_00",
-        "crt_speaker_hole_01_01",
-        "crt_speaker_hole_01_02",
-        "crt_speaker_hole_01_03",
-        "crt_speaker_hole_02_00",
-        "crt_speaker_hole_02_01",
-        "crt_speaker_hole_02_02",
-        "crt_speaker_hole_02_03",
-        "crt_speaker_hole_03_00",
-        "crt_speaker_hole_03_01",
-        "crt_speaker_hole_03_02",
-        "crt_speaker_hole_03_03",
-        "crt_speaker_hole_04_00",
-        "crt_speaker_hole_04_01",
-        "crt_speaker_hole_04_02",
-        "crt_speaker_hole_04_03",
-        "crt_speaker_hole_05_00",
-        "crt_speaker_hole_05_01",
-        "crt_speaker_hole_05_02",
-        "crt_speaker_hole_05_03",
-        "crt_top_vent_00",
-        "crt_top_vent_01",
-        "crt_top_vent_02",
-        "crt_top_vent_03",
-        "crt_top_vent_04",
-        "crt_top_vent_05",
-        "crt_top_vent_06",
+        "crt_boxy_side_depth",
+        "crt_rear_tube_block",
+        "crt_heavy_bottom_plinth",
+        "crt_front_deep_bezel_outer",
+        "crt_front_bezel_face",
+        "crt_screen_shadow_cavity",
+        "crt_large_black_glass_panel",
+        "crt_glass_left_curved_edge",
+        "crt_glass_right_curved_edge",
+        "crt_glass_top_curved_edge",
+        "crt_glass_bottom_curved_edge",
+        "crt_glass_reflection_top",
+        "crt_glass_reflection_mid",
+        "crt_glass_dark_scanline_00",
+        "crt_glass_dark_scanline_01",
+        "crt_glass_dark_scanline_02",
+        "crt_glass_dark_scanline_03",
+        "crt_glass_dark_scanline_04",
+        "crt_glass_dark_scanline_05",
+        "crt_bottom_control_strip",
+        "crt_center_brand_plate",
+        "crt_bottom_button_00",
+        "crt_bottom_button_01",
+        "crt_bottom_button_02",
+        "crt_bottom_button_03",
+        "crt_bottom_button_04",
+        "crt_bottom_button_05",
+        "crt_bottom_button_06",
+        "crt_bottom_button_07",
+        "crt_power_button_square",
+        "crt_power_indicator_green",
+        "crt_front_lower_accent_00",
+        "crt_front_lower_accent_01",
+        "crt_front_lower_accent_02",
+        "crt_front_lower_accent_03",
+        "crt_bottom_speaker_hole_00_00",
+        "crt_bottom_speaker_hole_00_01",
+        "crt_bottom_speaker_hole_00_02",
+        "crt_bottom_speaker_hole_01_00",
+        "crt_bottom_speaker_hole_01_01",
+        "crt_bottom_speaker_hole_01_02",
+        "crt_bottom_speaker_hole_02_00",
+        "crt_bottom_speaker_hole_02_01",
+        "crt_bottom_speaker_hole_02_02",
+        "crt_top_case_tab_00",
+        "crt_top_case_tab_01",
+        "crt_top_case_tab_02",
+        "crt_top_case_tab_03",
+        "crt_top_case_tab_04",
+        "crt_top_case_tab_05",
+        "crt_top_case_tab_06",
+        "crt_top_case_tab_07",
         "crt_left_side_vent_00",
         "crt_right_side_vent_00",
         "crt_left_side_vent_01",
@@ -231,22 +235,22 @@
         "crt_right_side_vent_04",
         "crt_left_side_vent_05",
         "crt_right_side_vent_05",
-        "crt_back_panel",
-        "crt_back_warning_label",
+        "crt_left_side_vent_06",
+        "crt_right_side_vent_06",
+        "crt_back_service_panel",
         "crt_back_cable_port",
         "crt_rubber_foot_0",
         "crt_rubber_foot_1",
         "crt_rubber_foot_2",
-        "crt_rubber_foot_3",
-        "crt_pixel_scuff_0",
-        "crt_pixel_scuff_1",
-        "crt_pixel_scuff_2",
-        "crt_pixel_scuff_3"
+        "crt_rubber_foot_3"
       ],
       "notes": [
-        "CRT television prop with black glass screen using the shared #3FA943/#E8F8E4/#0C1725 palette."
+        "Large-bezel box CRT television with dominant convex black glass screen and bottom button row."
       ],
-      "screen_state": "black_glass"
+      "screen_state": "black_glass",
+      "front_style": "large_bezel_box_crt",
+      "screen_material": "convex_black_glass",
+      "control_layout": "bottom_button_row"
     },
     "bookshelf": {
       "glb": "assets/3d/bookshelf/bookshelf.glb",
@@ -496,6 +500,97 @@
       "notes": [
         "Large desk prop, wider and deeper than the CRT television for room-scale placement."
       ]
+    },
+    "beanbag_chair": {
+      "glb": "assets/3d/beanbag_chair/beanbag_chair.glb",
+      "texture": "assets/3d/beanbag_chair/beanbag_chair_texture.png",
+      "preview": "assets/3d/beanbag_chair/beanbag_chair_preview.png",
+      "triangles": 1312,
+      "materials": 6,
+      "texture_size": [
+        256,
+        256
+      ],
+      "dimensions": [
+        2.38,
+        2.02,
+        1.2
+      ],
+      "objects": [
+        "beanbag_chair"
+      ],
+      "source_parts": [
+        "beanbag_sculpted_body",
+        "beanbag_center_sink",
+        "beanbag_soft_radial_fold_00",
+        "beanbag_soft_radial_fold_01",
+        "beanbag_soft_radial_fold_02",
+        "beanbag_soft_radial_fold_03",
+        "beanbag_soft_radial_fold_04",
+        "beanbag_soft_radial_fold_05",
+        "beanbag_soft_radial_fold_06",
+        "beanbag_soft_radial_fold_07",
+        "beanbag_soft_radial_fold_08",
+        "beanbag_soft_radial_fold_09",
+        "beanbag_soft_radial_fold_10",
+        "beanbag_soft_radial_fold_11",
+        "beanbag_soft_radial_fold_12",
+        "beanbag_soft_radial_fold_13",
+        "beanbag_soft_radial_fold_14",
+        "beanbag_soft_radial_fold_15",
+        "beanbag_small_side_tag",
+        "beanbag_side_tag_mark"
+      ],
+      "notes": [
+        "Player-sittable lazy sofa generated as a single sculpted cushion body with a central sink."
+      ],
+      "seat_role": "player_sittable",
+      "shape_construction": "single_sculpted_body",
+      "fabric_style": "sculpted_green_velour"
+    },
+    "disc_rug": {
+      "glb": "assets/3d/disc_rug/disc_rug.glb",
+      "texture": "assets/3d/disc_rug/disc_rug_texture.png",
+      "preview": "assets/3d/disc_rug/disc_rug_preview.png",
+      "triangles": 1004,
+      "materials": 6,
+      "texture_size": [
+        256,
+        256
+      ],
+      "dimensions": [
+        3.4,
+        3.4,
+        0.05
+      ],
+      "objects": [
+        "disc_rug"
+      ],
+      "source_parts": [
+        "disc_rug_outer_round_mat",
+        "disc_rug_deep_outer_rim",
+        "disc_rug_lime_inner_swirl",
+        "disc_rug_center_label",
+        "disc_rug_center_hole_pale",
+        "disc_rug_swirl_streak_00",
+        "disc_rug_swirl_streak_01",
+        "disc_rug_swirl_streak_02",
+        "disc_rug_swirl_streak_03",
+        "disc_rug_swirl_streak_04",
+        "disc_rug_swirl_streak_05",
+        "disc_rug_swirl_streak_06",
+        "disc_rug_swirl_streak_07",
+        "disc_rug_lower_title_block",
+        "disc_rug_lower_title_text_a",
+        "disc_rug_lower_title_text_b",
+        "disc_rug_small_rating_block",
+        "disc_rug_small_logo_block"
+      ],
+      "notes": [
+        "Round floor rug inspired by game disc and vinyl silhouettes, with original X WHEEL markings."
+      ],
+      "surface_role": "floor_rug",
+      "rug_style": "green_disc_rug"
     }
   }
 }
