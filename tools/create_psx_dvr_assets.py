@@ -1009,49 +1009,62 @@ def build_beanbag_asset() -> Asset:
         manifest_extra={
             "seat_role": "player_sittable",
             "shape_construction": "single_sculpted_body",
+            "sculpt_base": "uv_sphere",
             "fabric_style": "sculpted_green_velour",
         },
-        notes=["Player-sittable lazy sofa generated as a single sculpted cushion body with a central sink."],
+        notes=["Player-sittable lazy sofa generated from a UV-sphere body with procedural sculpt deformations."],
     )
     b = MeshBuilder(asset)
-    segments = 40
-    top_rings = [0.16, 0.30, 0.44, 0.58, 0.72, 0.86, 0.98, 1.08]
-    side_levels = [(0.86, 1.10), (0.68, 1.12), (0.50, 1.08), (0.32, 1.02), (0.18, 0.92)]
-    positions: list[tuple[float, float, float]] = [(0.0, -0.12, 0.56)]
-    normals: list[tuple[float, float, float]] = [(0.0, 0.0, 1.0)]
-    uvs: list[tuple[float, float]] = [(0.5, 0.5)]
+    segments = 36
+    rings = 14
+    positions: list[tuple[float, float, float]] = []
+    normals: list[tuple[float, float, float]] = []
+    uvs: list[tuple[float, float]] = []
     indices: list[int] = []
 
-    def beanbag_point(theta: float, radius: float, z_override: float | None = None, scale_override: float | None = None) -> tuple[float, float, float]:
-        rib = 1.0 + 0.025 * math.sin(theta * 18.0)
-        lopsided = 1.0 + 0.045 * math.sin(theta * 2.0 + 0.7)
-        scale = scale_override if scale_override is not None else radius
-        x = math.cos(theta) * 1.10 * scale * rib
-        y = -0.08 + math.sin(theta) * 0.91 * scale * lopsided
-        if z_override is not None:
-            z = z_override
-        else:
-            rim_lift = 0.43 * (radius**1.55)
-            sink = 0.12 * math.exp(-((radius - 0.34) ** 2) / 0.030)
-            folds = 0.018 * math.sin(theta * 12.0 + radius * 5.0) * radius
-            z = 0.56 + rim_lift - sink + folds
-        return (x, y, z)
+    def add_sculpted_vertex(theta: float, phi: float, u: float, v: float) -> int:
+        sin_phi = math.sin(phi)
+        cos_phi = math.cos(phi)
+        lopsided_x = 1.0 + 0.035 * math.sin(theta * 3.0 + 0.4)
+        lopsided_y = 1.0 + 0.030 * math.cos(theta * 2.0 - 0.2)
+        x = math.cos(theta) * sin_phi * 1.14 * lopsided_x
+        y = -0.05 + math.sin(theta) * sin_phi * 0.96 * lopsided_y
+        z = 0.62 + cos_phi * 0.52
 
+        top_weight = max(0.0, cos_phi)
+        center_sink = math.exp(-(sin_phi * sin_phi) / 0.115) * (top_weight ** 0.55)
+        rim_puff = math.exp(-((sin_phi - 0.73) ** 2) / 0.050) * (0.35 + top_weight * 0.65)
+        radial_fold = math.sin(theta * 14.0 + sin_phi * 5.0) * sin_phi * (top_weight ** 1.15)
+        side_lump = math.sin(theta * 7.0 + 0.6) * max(0.0, -cos_phi) * 0.012
+        z = z - 0.30 * center_sink + 0.08 * rim_puff + 0.026 * radial_fold + side_lump
+
+        if cos_phi < -0.62:
+            floor_mix = min(1.0, (-cos_phi - 0.62) / 0.38)
+            z = z * (1.0 - floor_mix) + (0.13 + 0.025 * sin_phi) * floor_mix
+
+        nx = math.cos(theta) * sin_phi / 1.14
+        ny = math.sin(theta) * sin_phi / 0.96
+        nz = cos_phi / 0.52
+        length = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
+        positions.append((x, y, z))
+        normals.append((nx / length, ny / length, nz / length))
+        uvs.append((u, v))
+        return len(positions) - 1
+
+    top_index = add_sculpted_vertex(0.0, 0.0, 0.5, 0.0)
     ring_indices: list[list[int]] = []
-    for radius in top_rings:
+    for ring_id in range(1, rings):
+        phi = math.pi * ring_id / rings
         ring: list[int] = []
         for idx in range(segments):
             theta = math.tau * idx / segments
-            point = beanbag_point(theta, radius)
-            positions.append(point)
-            normals.append((0.0, 0.0, 1.0))
-            uvs.append((0.5 + math.cos(theta) * radius * 0.44, 0.5 + math.sin(theta) * radius * 0.44))
-            ring.append(len(positions) - 1)
+            ring.append(add_sculpted_vertex(theta, phi, idx / segments, ring_id / rings))
         ring_indices.append(ring)
+    bottom_index = add_sculpted_vertex(0.0, math.pi, 0.5, 1.0)
 
     first_ring = ring_indices[0]
     for idx in range(segments):
-        indices.extend((0, first_ring[(idx + 1) % segments], first_ring[idx]))
+        indices.extend((top_index, first_ring[(idx + 1) % segments], first_ring[idx]))
     for ring_idx in range(len(ring_indices) - 1):
         inner = ring_indices[ring_idx]
         outer = ring_indices[ring_idx + 1]
@@ -1061,35 +1074,20 @@ def build_beanbag_asset() -> Asset:
             c = outer[(idx + 1) % segments]
             d = outer[idx]
             indices.extend((a, b2, c, a, c, d))
+    last_ring = ring_indices[-1]
+    for idx in range(segments):
+        indices.extend((last_ring[idx], last_ring[(idx + 1) % segments], bottom_index))
 
-    previous = ring_indices[-1]
-    for level, (z, scale) in enumerate(side_levels):
-        ring = []
-        for idx in range(segments):
-            theta = math.tau * idx / segments
-            point = beanbag_point(theta, 1.08, z_override=z, scale_override=scale)
-            positions.append(point)
-            normals.append((math.cos(theta), math.sin(theta), 0.15))
-            uvs.append((idx / segments, 0.15 + level * 0.12))
-            ring.append(len(positions) - 1)
-        for idx in range(segments):
-            a = previous[idx]
-            b2 = previous[(idx + 1) % segments]
-            c = ring[(idx + 1) % segments]
-            d = ring[idx]
-            indices.extend((a, b2, c, a, c, d))
-        previous = ring
-
-    b.add_primitive("beanbag_sculpted_body", 0, positions, normals, uvs, indices)
-    b.add_elliptical_cylinder_z("beanbag_center_sink", (0.0, -0.12, 0.575), 0.25, 0.20, 0.016, 24, 0)
-    for idx in range(16):
-        theta = math.tau * idx / 16.0
-        x = math.cos(theta) * 0.42
-        y = -0.08 + math.sin(theta) * 0.34
+    b.add_primitive("beanbag_uv_sphere_sculpted_body", 0, positions, normals, uvs, indices)
+    b.add_elliptical_cylinder_z("beanbag_center_sink", (0.0, -0.12, 0.855), 0.20, 0.16, 0.016, 24, 1)
+    for idx in range(18):
+        theta = math.tau * idx / 18.0
+        x = math.cos(theta) * 0.36
+        y = -0.08 + math.sin(theta) * 0.29
         b.add_box_z_rotated(
             f"beanbag_soft_radial_fold_{idx:02d}",
-            (x, y, 0.80 + 0.07 * math.sin(theta + 0.3)),
-            (0.018, 0.54, 0.018),
+            (x, y, 0.935 + 0.035 * math.sin(theta + 0.3)),
+            (0.022, 0.68, 0.022),
             theta - math.pi / 2,
             2,
         )
@@ -1565,6 +1563,8 @@ def report_outputs() -> None:
         raise ValueError(f"beanbag_chair seat role mismatch: {beanbag.get('seat_role')}")
     if beanbag.get("shape_construction") != "single_sculpted_body":
         raise ValueError(f"beanbag_chair shape construction mismatch: {beanbag.get('shape_construction')}")
+    if beanbag.get("sculpt_base") != "uv_sphere":
+        raise ValueError(f"beanbag_chair sculpt base mismatch: {beanbag.get('sculpt_base')}")
     if beanbag.get("fabric_style") != "sculpted_green_velour":
         raise ValueError(f"beanbag_chair fabric style mismatch: {beanbag.get('fabric_style')}")
     if not (250 <= rug["triangles"] <= 1200):

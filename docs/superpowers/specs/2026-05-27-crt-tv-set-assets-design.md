@@ -56,7 +56,7 @@ The CRT screen should read as inactive convex black glass, not an active pale gr
 - Triangle budget: 900-2,200 triangles.
 - Texture budget: one 256x256 nearest-filter texture atlas plus flat materials.
 - Material read: sculpted green velour/fabric with soft radial folds and a small side tag.
-- Construction: one sculpted cushion body mesh with a central sink; avoid blocky separate arm/back cushion construction.
+- Construction: start from a UV-sphere style latitude/longitude mesh, then sculpt it into a flattened lazy-sofa form by compressing the bottom, sinking the center, puffing the rim, and adding radial folds. Avoid blocky separate arm/back cushion construction.
 - Collision: simple sit-volume collision proxy.
 - Export: GLB, texture PNG, preview PNG, and Blender asset.
 
@@ -87,7 +87,7 @@ The CRT uses a chunky early-2000s desktop TV silhouette: deep blue-black shell, 
 
 The bookshelf and desk should use the same restricted palette: deep casing/shadows, pale highlights, and green labels or worn paint accents. They should feel like part of the same PSX-era room rather than realistic furniture.
 
-The beanbag chair uses a rounded low-poly sculpted cushion silhouette with a depressed center and radial fabric folds. It should read as one soft object, not a furniture assembly.
+The beanbag chair uses a rounded low-poly UV-sphere-derived cushion silhouette with a depressed center and radial fabric folds. It should read as one soft object, not a furniture assembly.
 
 The disc rug uses a flat circular mat, dark rim, center label, green swirl fields, and original non-branded markings inspired by game discs and colored vinyl.
 

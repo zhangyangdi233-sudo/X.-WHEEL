@@ -505,7 +505,7 @@
       "glb": "assets/3d/beanbag_chair/beanbag_chair.glb",
       "texture": "assets/3d/beanbag_chair/beanbag_chair_texture.png",
       "preview": "assets/3d/beanbag_chair/beanbag_chair_preview.png",
-      "triangles": 1312,
+      "triangles": 1272,
       "materials": 6,
       "texture_size": [
         256,
@@ -520,7 +520,7 @@
         "beanbag_chair"
       ],
       "source_parts": [
-        "beanbag_sculpted_body",
+        "beanbag_uv_sphere_sculpted_body",
         "beanbag_center_sink",
         "beanbag_soft_radial_fold_00",
         "beanbag_soft_radial_fold_01",
@@ -538,14 +538,17 @@
         "beanbag_soft_radial_fold_13",
         "beanbag_soft_radial_fold_14",
         "beanbag_soft_radial_fold_15",
+        "beanbag_soft_radial_fold_16",
+        "beanbag_soft_radial_fold_17",
         "beanbag_small_side_tag",
         "beanbag_side_tag_mark"
       ],
       "notes": [
-        "Player-sittable lazy sofa generated as a single sculpted cushion body with a central sink."
+        "Player-sittable lazy sofa generated from a UV-sphere body with procedural sculpt deformations."
       ],
       "seat_role": "player_sittable",
       "shape_construction": "single_sculpted_body",
+      "sculpt_base": "uv_sphere",
       "fabric_style": "sculpted_green_velour"
     },
     "disc_rug": {

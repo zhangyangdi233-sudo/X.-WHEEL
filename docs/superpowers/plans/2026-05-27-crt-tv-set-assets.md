@@ -4,7 +4,7 @@
 
 **Goal:** Revise the CRT into a large-bezel box TV with convex black glass, remove the integrated set asset, and add separate bookshelf, desk, player-sittable beanbag chair, and disc rug assets using the shared green/pale/deep-blue palette.
 
-**Architecture:** Update `tools/create_psx_dvr_assets.py` with large-bezel CRT geometry, convex black glass materials, bookshelf/desk/beanbag/rug geometry, asset size metadata, and manifest/report checks. Update `tools/test_psx_dvr_assets.py` to enforce no integrated set, new assets, CRT reference metadata, single-body beanbag metadata, disc rug metadata, and relative size ordering.
+**Architecture:** Update `tools/create_psx_dvr_assets.py` with large-bezel CRT geometry, convex black glass materials, bookshelf/desk/UV-sphere-sculpted beanbag/rug geometry, asset size metadata, and manifest/report checks. Update `tools/test_psx_dvr_assets.py` to enforce no integrated set, new assets, CRT reference metadata, UV-sphere single-body beanbag metadata, disc rug metadata, and relative size ordering.
 
 **Tech Stack:** Python 3 standard library, glTF 2.0 binary `.glb`, generated PNG textures, existing software preview renderer.
 
@@ -42,6 +42,7 @@ self.assertEqual(assets["crt_tv"]["control_layout"], "bottom_button_row")
 self.assertIn("beanbag_chair", assets)
 self.assertEqual(assets["beanbag_chair"]["seat_role"], "player_sittable")
 self.assertEqual(assets["beanbag_chair"]["shape_construction"], "single_sculpted_body")
+self.assertEqual(assets["beanbag_chair"]["sculpt_base"], "uv_sphere")
 self.assertEqual(assets["beanbag_chair"]["fabric_style"], "sculpted_green_velour")
 self.assertIn("disc_rug", assets)
 self.assertEqual(assets["disc_rug"]["surface_role"], "floor_rug")
@@ -56,7 +57,7 @@ self.assertEqual(manifest["palette"]["primary"], ["#3FA943", "#E8F8E4", "#0C1725
 
 Run: `python -m unittest tools.test_psx_dvr_assets -v`
 
-Expected: fails because current output lacks large-bezel CRT metadata, single-body beanbag metadata, or `disc_rug`.
+Expected: fails because current output lacks large-bezel CRT metadata, UV-sphere beanbag metadata, or `disc_rug`.
 
 ## Task 2: Generator Extension
 
@@ -66,7 +67,7 @@ Modify `tools/create_psx_dvr_assets.py` to:
 
 - Change CRT geometry, screen materials, and texture to a large-bezel box CRT with convex black glass and subtle green/pale reflections.
 - Remove `build_integrated_set_asset()` and omit `psx_dvr_crt_set` from generation, verification, report, and manifest.
-- Add `build_bookshelf_asset()`, `build_desk_asset()`, `build_beanbag_asset()`, and `build_disc_rug_asset()`.
+- Add `build_bookshelf_asset()`, `build_desk_asset()`, `build_beanbag_asset()` from a sculpted UV-sphere mesh, and `build_disc_rug_asset()`.
 - Include `dimensions`, `screen_state`, and palette metadata in the manifest.
 - Extend `verify_outputs()` and `report_outputs()` to include console, disc, CRT, bookshelf, desk, beanbag, and disc rug only.
 
@@ -99,6 +100,6 @@ Expected: all commands exit 0.
 
 ## Self-Review
 
-- Spec coverage: large-bezel black-glass CRT, no integrated set, bookshelf, desk, single-body beanbag, disc rug, size ordering, palette, manifest, previews, Blender scene, and validation are covered.
+- Spec coverage: large-bezel black-glass CRT, no integrated set, bookshelf, desk, UV-sphere single-body beanbag, disc rug, size ordering, palette, manifest, previews, Blender scene, and validation are covered.
 - Red-flag scan: no incomplete-work markers remain.
 - Type consistency: paths and asset keys match the design spec.
