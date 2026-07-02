@@ -181,8 +181,6 @@ func _setup_crt() -> void:
 
 
 func _start_menu_bgm() -> void:
-	if MENU_BGM is AudioStreamWAV:
-		MENU_BGM.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	AudioManager.play_bgm(MENU_BGM, 2.0)
 
 

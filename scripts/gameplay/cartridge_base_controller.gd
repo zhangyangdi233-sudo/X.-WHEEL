@@ -165,7 +165,11 @@ func _animate_crt_power(from_val: float, to_val: float, duration: float) -> void
 func _on_power_off_complete() -> void:
 	cartridge_completed.emit()
 	GlobalState.mark_cartridge_completed(cartridge_name)
-
+	# Save progress
+	var save_slot := SaveSystem.get_latest_save()
+	if save_slot < 0:
+		save_slot = 0
+	SaveSystem.save_game(save_slot)
 	# Check for post-credits / final chapter unlock
 	if GlobalState.all_cartridges_completed:
 		# Transition to final chapter instead of cartridge select
@@ -296,12 +300,6 @@ func _on_dialogue_ended() -> void:
 	# Check for cigarette butt scene
 	if _has_cigarette_butt and not cartridge_name.is_empty():
 		GlobalState.cigarette_butt_seen[cartridge_name] = true
-
-	# Save progress
-	var save_slot := SaveSystem.get_latest_save()
-	if save_slot < 0:
-		save_slot = 0
-	SaveSystem.save_game(save_slot)
 
 	# Power off and return
 	_power_off_sequence()

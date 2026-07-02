@@ -292,8 +292,6 @@ func _update_instruction() -> void:
 
 
 func _start_cartridge_select_bgm() -> void:
-	if CARTRIDGE_SELECT_BGM is AudioStreamWAV:
-		CARTRIDGE_SELECT_BGM.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	AudioManager.play_bgm(CARTRIDGE_SELECT_BGM, 1.0)
 
 

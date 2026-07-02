@@ -154,14 +154,14 @@ class MainMenuOstTest(unittest.TestCase):
         source = MENU_CONTROLLER.read_text(encoding="utf-8")
         self.assertIn('preload("res://snd/main_menu_dreamcore_loop.wav")', source)
         self.assertIn('preload("res://snd/start_to_cartridge_transition.wav")', source)
-        self.assertRegex(source, r"MENU_BGM\.loop_mode\s*=\s*AudioStreamWAV\.LOOP_FORWARD")
+        self.assertNotRegex(source, r"MENU_BGM\.loop_mode\s*=")
         self.assertRegex(source, r"AudioManager\.play_bgm\(\s*MENU_BGM")
         self.assertRegex(source, r"AudioManager\.play_bgm_stinger\(\s*START_GAME_TRANSITION")
 
     def test_cartridge_select_starts_looped_bgm(self):
         source = CARTRIDGE_SELECT_CONTROLLER.read_text(encoding="utf-8")
         self.assertIn('preload("res://snd/cartridge_select_signal_loop.wav")', source)
-        self.assertRegex(source, r"CARTRIDGE_SELECT_BGM\.loop_mode\s*=\s*AudioStreamWAV\.LOOP_FORWARD")
+        self.assertNotRegex(source, r"CARTRIDGE_SELECT_BGM\.loop_mode\s*=")
         self.assertRegex(source, r"AudioManager\.play_bgm\(\s*CARTRIDGE_SELECT_BGM")
 
     def test_cartridge_select_plays_per_cartridge_insert_sfx(self):
@@ -178,8 +178,11 @@ class MainMenuOstTest(unittest.TestCase):
         self.assertIsNotNone(play_bgm)
         self.assertNotIn("linear_to_db(0.0)", play_bgm.group(0))
         self.assertIn("GlobalState.bgm_volume", play_bgm.group(0))
+        self.assertIn("_prepare_loop(stream)", play_bgm.group(0))
         self.assertIn("func play_bgm_stinger", source)
         self.assertRegex(source, r"_bgm_stinger_player\.bus\s*=\s*\"BGM\"")
+        self.assertRegex(source, r"func _prepare_loop\(\s*stream: AudioStream")
+        self.assertRegex(source, r"stream\.loop_mode\s*=\s*AudioStreamWAV\.LOOP_FORWARD")
 
     def test_audio_manager_exposes_global_switchable_playlist(self):
         source = AUDIO_MANAGER.read_text(encoding="utf-8")
